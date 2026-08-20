@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Training — WorkForce Academy</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <script src="config.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --navy-950: #0B1221; --navy-900: #111827; --navy-800: #1a2640;
+      --navy-700: #243352; --navy-600: #2e4068; --steel: #4B6FA5;
+      --slate: #8ba3c9; --mist: #c8d6ea;
+      --gold: #C9A84C; --gold-lt: #e8c97a;
+      --white: #F0F4FA; --text-dim: #6b7fa0;
+      --success: #22c55e; --error: #ef4444; --warning: #f59e0b;
+      --sidebar-w: 280px;
+    }
+    html, body { height: 100%; background: var(--navy-950); color: var(--white); font-family: "Inter", sans-serif; }
+
+    /* ── LAYOUT ── */
+    .app { display: flex; min-height: 100vh; }
+
+    /* SIDEBAR */
+    .sidebar {
+      width: var(--sidebar-w); background: var(--navy-900);
+      border-right: 1px solid rgba(255,255,255,0.06);
+      display: flex; flex-direction: column;
+      position: fixed; top: 0; left: 0; bottom: 0; z-index: 100;
+      overflow-y: auto;
+    }
+    .sidebar-header {
+      padding: 1.5rem;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    .brand { display: flex; align-items: center; gap: 10px; margin-bottom: 1.25rem; }
+    .brand-icon { width: 32px; height: 32px; background: var(--gold); border-radius: 7px; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+    .brand-name { font-weight: 600; font-size: 0.9rem; }
+    .brand-sub { font-size: 0.7rem; color: var(--text-dim); }
+
+    .user-info { background: var(--navy-800); border-radius: 10px; padding: 0.875rem 1rem; }
+    .user-name { font-weight: 600; font-size: 0.9rem; color: var(--white); }
+    .user-role { font-size: 0.72rem; color: var(--gold); text-transform: uppercase; letter-spacing: 0.08em; margin-top: 2px; }
+
+    .sidebar-section { padding: 1.25rem 1.5rem 0.5rem; }
+    .sidebar-section-label {
+      font-size: 0.68rem; color: var(--text-dim); text-transform: uppercase;
+      letter-spacing: 0.1em; margin-bottom: 0.75rem;
+    }
+
+    .course-btn {
+      width: 100%; text-align: left; padding: 0.625rem 0.875rem;
+      background: transparent; border: none; border-radius: 8px;
+      color: var(--slate); font-family: "Inter", sans-serif; font-size: 0.875rem;
+      cursor: pointer; transition: all 0.15s; display: flex; align-items: center; gap: 8px;
+      margin-bottom: 2px;
+    }
+    .course-btn:hover { background: var(--navy-800); color: var(--white); }
+    .course-btn.active { background: rgba(201,168,76,0.12); color: var(--gold-lt); }
+    .course-btn .course-icon { font-size: 14px; }
+
+    .sidebar-footer { margin-top: auto; padding: 1.25rem 1.5rem; border-top: 1px solid rgba(255,255,255,0.06); }
+    .btn-logout {
+      width: 100%; padding: 0.625rem; background: transparent;
+      border: 1px solid var(--navy-700); border-radius: 8px;
+      color: var(--text-dim); font-family: "Inter", sans-serif; font-size: 0.82rem;
+      cursor: pointer; transition: all 0.15s;
+    }
+    .btn-logout:hover { border-color: var(--error); color: #fca5a5; }
+
+    /* MAIN CONTENT */
+    .main { margin-left: var(--sidebar-w); flex: 1; display: flex; flex-direction: column; }
+
+    .topbar {
+      padding: 1.25rem 2rem; border-bottom: 1px solid rgba(255,255,255,0.06);
+      background: var(--navy-900); display: flex; align-items: center; justify-content: space-between;
+    }
+    .topbar-title { font-family: "DM Serif Display", serif; font-size: 1.4rem; color: var(--white); }
+    .topbar-sub { font-size: 0.8rem; color: var(--text-dim); margin-top: 2px; }
+
+    .progress-summary {
+      display: flex; align-items: center; gap: 1rem;
+    }
+    .progress-pill {
+      background: var(--navy-800); border-radius: 20px; padding: 0.375rem 0.875rem;
+      font-size: 0.8rem; color: var(--slate);
+      display: flex; align-items: center; gap: 6px;
+    }
+    .progress-pill strong { color: var(--gold-lt); }
+
+    .content { padding: 2rem; flex: 1; }
+
+    /* ── MILESTONE TRACK ── */
+    .track-container { max-width: 860px; }
+    .track-header { margin-bottom: 2rem; }
+    .track-header h2 { font-family: "DM Serif Display", serif; font-size: 1.6rem; color: var(--white); margin-bottom: 0.4rem; }
+    .track-header p { font-size: 0.875rem; color: var(--slate); }
+
+    /* Progress bar */
+    .overall-progress { background: var(--navy-800); border-radius: 12px; padding: 1.25rem 1.5rem; margin-bottom: 2rem; }
+    .op-label { display: flex; justify-content: space-between; margin-bottom: 0.75rem; }
+    .op-label span { font-size: 0.8rem; color: var(--text-dim); }
+    .op-label strong { color: var(--gold-lt); font-size: 0.875rem; }
+    .op-bar { height: 6px; background: var(--navy-700); border-radius: 3px; overflow: hidden; }
+    .op-fill { height: 100%; background: linear-gradient(90deg, var(--gold), var(--gold-lt)); border-radius: 3px; transition: width 0.6s ease; }
+
+    /* Milestone cards */
+    .milestone-card {
+      background: var(--navy-900); border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 14px; margin-bottom: 1rem; overflow: hidden;
+      transition: border-color 0.2s;
+    }
+    .milestone-card:hover { border-color: rgba(255,255,255,0.12); }
+    .milestone-card.locked { opacity: 0.55; }
+    .milestone-card.active-card { border-color: var(--gold); }
+
+    .milestone-header {
+      padding: 1.25rem 1.5rem; cursor: pointer;
+      display: flex; align-items: center; gap: 1rem;
+    }
+    .milestone-num {
+      width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-family: "JetBrains Mono", monospace; font-size: 0.85rem; font-weight: 500;
+    }
+    .milestone-num.status-locked    { background: var(--navy-700); color: var(--text-dim); border: 2px solid var(--navy-600); }
+    .milestone-num.status-unlocked  { background: rgba(75,111,165,.2); color: var(--steel); border: 2px solid var(--steel); }
+    .milestone-num.status-submitted { background: rgba(245,158,11,.15); color: var(--warning); border: 2px solid var(--warning); }
+    .milestone-num.status-passed    { background: rgba(34,197,94,.15); color: var(--success); border: 2px solid var(--success); }
+    .milestone-num.status-failed    { background: rgba(239,68,68,.12); color: var(--error); border: 2px solid var(--error); }
+
+    .milestone-info { flex: 1; }
+    .milestone-title { font-weight: 600; font-size: 0.95rem; color: var(--white); margin-bottom: 3px; }
+    .milestone-desc  { font-size: 0.8rem; color: var(--text-dim); }
+    .milestone-meta  { display: flex; align-items: center; gap: 0.5rem; flex-shrink: 0; }
+
+    .badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 0.25rem 0.625rem; border-radius: 20px;
+      font-size: 0.75rem; font-weight: 500;
+    }
+    .badge--locked    { background: rgba(107,127,160,.12); color: var(--text-dim); }
+    .badge--unlocked  { background: rgba(75,111,165,.15); color: var(--slate); }
+    .badge--submitted { background: rgba(245,158,11,.15); color: var(--warning); }
+    .badge--passed    { background: rgba(34,197,94,.15); color: var(--success); }
+    .badge--failed    { background: rgba(239,68,68,.12); color: #fca5a5; }
+
+    .chevron { color: var(--text-dim); transition: transform 0.25s; font-size: 0.9rem; }
+    .chevron.open { transform: rotate(180deg); }
+
+    /* Milestone body (expanded) */
+    .milestone-body { display: none; padding: 0 1.5rem 1.5rem; border-top: 1px solid rgba(255,255,255,0.06); }
+    .milestone-body.open { display: block; }
+
+    .content-block {
+      background: var(--navy-800); border-radius: 10px; padding: 1.25rem 1.5rem;
+      margin: 1rem 0; font-size: 0.875rem; line-height: 1.75; color: var(--mist);
+    }
+    .content-block h3 { font-family: "DM Serif Display", serif; font-size: 1.2rem; color: var(--white); margin-bottom: 0.75rem; }
+    .content-block p  { margin-bottom: 0.75rem; }
+    .content-block ul { padding-left: 1.25rem; }
+    .content-block li { margin-bottom: 0.4rem; }
+    .content-block strong { color: var(--white); }
+
+    /* SUBMISSION AREAS */
+    .submission-area { margin-top: 1.25rem; }
+    .submission-title {
+      font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.08em;
+      color: var(--gold); margin-bottom: 1rem; font-weight: 500;
+    }
+
+    /* QUIZ */
+    .quiz-wrap { }
+    .quiz-question { background: var(--navy-800); border-radius: 10px; padding: 1.25rem; margin-bottom: 1rem; }
+    .quiz-q-text { font-weight: 500; font-size: 0.9rem; color: var(--white); margin-bottom: 0.875rem; }
+    .quiz-option {
+      display: flex; align-items: center; gap: 10px;
+      padding: 0.6rem 0.875rem; border-radius: 8px;
+      border: 1.5px solid var(--navy-600); cursor: pointer; margin-bottom: 6px;
+      transition: all 0.15s; font-size: 0.875rem; color: var(--slate);
+    }
+    .quiz-option:hover { border-color: var(--steel); color: var(--white); }
+    .quiz-option input[type="radio"] { accent-color: var(--gold); }
+    .quiz-option.selected { border-color: var(--gold); background: rgba(201,168,76,0.08); color: var(--gold-lt); }
+    .quiz-option.correct  { border-color: var(--success); background: rgba(34,197,94,0.1); color: var(--success); }
+    .quiz-option.wrong    { border-color: var(--error); background: rgba(239,68,68,0.08); color: #fca5a5; }
+
+    .quiz-score-box {
+      background: var(--navy-800); border-radius: 12px; padding: 1.5rem; text-align: center; margin-top: 1rem;
+    }
+    .quiz-score-num { font-family: "DM Serif Display", serif; font-size: 3rem; line-height: 1; margin-bottom: 0.5rem; }
+    .quiz-score-label { font-size: 0.875rem; color: var(--text-dim); }
+
+    /* WRITTEN */
+    .written-textarea {
+      width: 100%; min-height: 140px; padding: 1rem;
+      background: var(--navy-800); border: 1.5px solid var(--navy-600);
+      border-radius: 10px; color: var(--white); font-family: "Inter", sans-serif;
+      font-size: 0.875rem; line-height: 1.6; resize: vertical; outline: none;
+      transition: border-color 0.2s;
+    }
+    .written-textarea:focus { border-color: var(--gold); }
+    .written-textarea::placeholder { color: var(--text-dim); }
+
+    /* CHECKBOX */
+    .checkbox-confirm {
+      display: flex; align-items: flex-start; gap: 12px;
+      background: var(--navy-800); border-radius: 10px; padding: 1.25rem;
+      cursor: pointer;
+    }
+    .checkbox-confirm input { width: 18px; height: 18px; margin-top: 2px; accent-color: var(--gold); cursor: pointer; flex-shrink: 0; }
+    .checkbox-confirm-text { font-size: 0.875rem; color: var(--slate); line-height: 1.6; }
+    .checkbox-confirm-text strong { color: var(--white); }
+
+    .btn-submit {
+      margin-top: 1rem; padding: 0.75rem 1.75rem;
+      background: var(--gold); color: var(--navy-950);
+      border: none; border-radius: 8px;
+      font-family: "Inter", sans-serif; font-weight: 600; font-size: 0.9rem;
+      cursor: pointer; transition: all 0.15s;
+    }
+    .btn-submit:hover { background: var(--gold-lt); }
+    .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .btn-retry {
+      margin-top: 0.75rem; padding: 0.625rem 1.25rem;
+      background: transparent; color: var(--slate);
+      border: 1px solid var(--navy-600); border-radius: 8px;
+      font-family: "Inter", sans-serif; font-size: 0.875rem;
+      cursor: pointer; transition: all 0.15s; margin-left: 0.5rem;
+    }
+    .btn-retry:hover { border-color: var(--steel); color: var(--white); }
+
+    .submitted-notice {
+      background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.25);
+      border-radius: 10px; padding: 1rem 1.25rem;
+      font-size: 0.875rem; color: var(--warning);
+      display: flex; align-items: center; gap: 8px;
+    }
+    .passed-notice {
+      background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.25);
+      border-radius: 10px; padding: 1rem 1.25rem;
+      font-size: 0.875rem; color: var(--success);
+      display: flex; align-items: center; gap: 8px;
+    }
+
+    /* EMPTY STATE */
+    .empty-state { text-align: center; padding: 4rem 2rem; }
+    .empty-state .icon { font-size: 3rem; margin-bottom: 1rem; opacity: 0.4; }
+    .empty-state h3 { font-family: "DM Serif Display", serif; font-size: 1.4rem; color: var(--white); margin-bottom: 0.5rem; }
+    .empty-state p { color: var(--text-dim); font-size: 0.875rem; }
+
+    /* SKELETON LOADER */
+    .skeleton { background: var(--navy-800); border-radius: 8px; animation: pulse 1.5s ease-in-out infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+    /* TOAST */
+    .wtp-toast { position: fixed; bottom: 2rem; right: 2rem; background: var(--navy-700); color: var(--white); padding: 0.875rem 1.25rem; border-radius: 10px; font-size: 0.875rem; box-shadow: 0 8px 32px rgba(0,0,0,0.4); transform: translateY(20px); opacity: 0; transition: all 0.3s ease; z-index: 9999; border-left: 3px solid var(--steel); }
+    .wtp-toast--visible { transform: translateY(0); opacity: 1; }
+    .wtp-toast--success { border-left-color: var(--success); }
+    .wtp-toast--error   { border-left-color: var(--error); }
+    .wtp-toast--info    { border-left-color: var(--steel); }
+
+    /* RESPONSIVE */
+    @media (max-width: 768px) {
+      .sidebar { transform: translateX(-100%); }
+      .main { margin-left: 0; }
+      .content { padding: 1rem; }
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="brand">
+        <div class="brand-icon">🎓</div>
+        <div>
+          <div class="brand-name">WorkForce Academy</div>
+          <div class="brand-sub">Training Platform</div>
+        </div>
+      </div>
+      <div class="user-info">
+        <div class="user-name" id="sidebarName">Loading…</div>
+        <div class="user-role">Learner</div>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">My Courses</div>
+      <div id="courseList">
+        <div class="skeleton" style="height:36px;margin-bottom:6px;"></div>
+        <div class="skeleton" style="height:36px;"></div>
+      </div>
+    </div>
+
+    <div class="sidebar-footer">
+      <button class="btn-logout" onclick="logout()">Sign Out</button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+    <div class="topbar">
+      <div>
+        <div class="topbar-title" id="topbarTitle">My Training</div>
+        <div class="topbar-sub" id="topbarSub">Select a course to view your milestones</div>
+      </div>
+      <div class="progress-summary" id="progressSummary" style="display:none">
+        <div class="progress-pill">
+          <span>Passed</span>
+          <strong id="progressCount">0 / 0</strong>
+        </div>
+      </div>
+    </div>
+
+    <div class="content">
+      <div class="track-container" id="trackContainer">
+        <div class="empty-state">
+          <div class="icon">📚</div>
+          <h3>Select a course</h3>
+          <p>Choose a course from the sidebar to view your milestones.</p>
+        </div>
+      </div>
+    </div>
+  </main>
+
+</div>
+
+<script>
+  let user, allCourses = [], currentCourse = null, milestones = [], progress = [];
+
+  window.addEventListener("DOMContentLoaded", async () => {
+    user = requireAuth(["LEARNER"]);
+    if (!user) return;
+    document.getElementById("sidebarName").textContent = user.full_name;
+    await loadCourses();
+  });
+
+  async function loadCourses() {
+    const res = await apiCall("getCourses", { user_id: user.user_id, role: user.role });
+    allCourses = res.courses || [];
+    renderCourseList();
+    if (allCourses.length === 1) selectCourse(allCourses[0]);
+  }
+
+  function renderCourseList() {
+    const el = document.getElementById("courseList");
+    if (!allCourses.length) {
+      el.innerHTML = `<p style="font-size:.8rem;color:var(--text-dim);padding:.5rem 0">No courses enrolled.</p>`;
+      return;
+    }
+    el.innerHTML = allCourses.map((c,i) =>
+      `<button class="course-btn ${currentCourse?.course_id===c.course_id?'active':''}" onclick="selectCourse(allCourses[${i}])">
+        <span class="course-icon">📋</span> ${c.title}
+      </button>`
+    ).join("");
+  }
+
+  async function selectCourse(course) {
+    currentCourse = course;
+    renderCourseList();
+    document.getElementById("topbarTitle").textContent = course.title;
+    document.getElementById("topbarSub").textContent = course.description;
+    document.getElementById("trackContainer").innerHTML = `
+      <div class="skeleton" style="height:70px;margin-bottom:1rem;border-radius:12px;"></div>
+      <div class="skeleton" style="height:80px;margin-bottom:1rem;border-radius:14px;"></div>
+      <div class="skeleton" style="height:80px;margin-bottom:1rem;border-radius:14px;"></div>
+      <div class="skeleton" style="height:80px;border-radius:14px;"></div>`;
+
+    const [mRes, pRes] = await Promise.all([
+      apiCall("getMilestones", { course_id: course.course_id }),
+      apiCall("getProgress", { user_id: user.user_id, course_id: course.course_id })
+    ]);
+    milestones = mRes.milestones || [];
+    progress   = pRes.progress  || [];
+    renderTrack();
+  }
+
+  function getStatus(milestone_id) {
+    const p = progress.find(p => p.milestone_id === milestone_id);
+    return p ? p.status : "LOCKED";
+  }
+
+  function renderTrack() {
+    const passed = progress.filter(p => p.status === "PASSED").length;
+    const total  = milestones.length;
+    const pct    = total ? Math.round((passed/total)*100) : 0;
+
+    document.getElementById("progressSummary").style.display = "flex";
+    document.getElementById("progressCount").textContent = `${passed} / ${total}`;
+
+    const html = `
+      <div class="track-header">
+        <h2>${currentCourse.title}</h2>
+        <p>${currentCourse.description}</p>
+      </div>
+      <div class="overall-progress">
+        <div class="op-label">
+          <span>Overall Progress</span>
+          <strong>${pct}% complete</strong>
+        </div>
+        <div class="op-bar"><div class="op-fill" style="width:${pct}%"></div></div>
+      </div>
+      ${milestones.map((m,i) => renderMilestoneCard(m, i)).join("")}
+    `;
+    document.getElementById("trackContainer").innerHTML = html;
+  }
+
+  function renderMilestoneCard(m, idx) {
+    const status = getStatus(m.milestone_id);
+    const locked = status === "LOCKED";
+    const statusClass = "status-" + status.toLowerCase();
+
+    return `
+      <div class="milestone-card ${locked?'locked':''} ${status==='UNLOCKED'?'active-card':''}" id="card-${m.milestone_id}">
+        <div class="milestone-header" onclick="${!locked?`toggleCard('${m.milestone_id}')`:''}" style="${locked?'cursor:default':''}">
+          <div class="milestone-num ${statusClass}">${idx+1}</div>
+          <div class="milestone-info">
+            <div class="milestone-title">${m.title}</div>
+            <div class="milestone-desc">${m.description}</div>
+          </div>
+          <div class="milestone-meta">
+            ${statusBadge(status)}
+            ${!locked ? `<span class="chevron" id="chev-${m.milestone_id}">▾</span>` : ''}
+          </div>
+        </div>
+        <div class="milestone-body" id="body-${m.milestone_id}">
+          <div class="content-block">${m.content_html}</div>
+          ${renderSubmissionArea(m, status)}
+        </div>
+      </div>`;
+  }
+
+  function renderSubmissionArea(m, status) {
+    if (status === "PASSED") {
+      const p = progress.find(p => p.milestone_id === m.milestone_id);
+      return `<div class="passed-notice">✅ Milestone completed${p?.score ? ` — Score: ${p.score}%` : ""}${p?.approved_at ? ` on ${fmtDate(p.approved_at)}` : ""}</div>`;
+    }
+    if (status === "SUBMITTED") {
+      return `<div class="submitted-notice">⏳ Your response is awaiting review by your instructor. You'll be notified once it's graded.</div>`;
+    }
+    if (status === "FAILED") {
+      return `<div style="margin-bottom:.75rem"><span class="badge badge--failed">❌ Not Passed — you may resubmit</span></div>${buildSubmissionForm(m)}`;
+    }
+    if (status === "UNLOCKED") {
+      return buildSubmissionForm(m);
+    }
+    return "";
+  }
+
+  function buildSubmissionForm(m) {
+    const type = m.submission_type;
+    let html = `<div class="submission-area">`;
+    html += `<div class="submission-title">`;
+
+    if (type === "CHECKBOX") {
+      html += `Complete this milestone</div>
+        <label class="checkbox-confirm" id="chk-label-${m.milestone_id}">
+          <input type="checkbox" id="chk-${m.milestone_id}" onchange="toggleCheckbox('${m.milestone_id}')">
+          <div class="checkbox-confirm-text">
+            <strong>I confirm</strong> that I have read and understood the content of this milestone and am ready to proceed.
+          </div>
+        </label>
+        <br>
+        <button class="btn-submit" id="btn-${m.milestone_id}" disabled onclick="submitCheckbox('${m.milestone_id}', '${currentCourse.course_id}')">Mark Complete</button>`;
+    }
+
+    else if (type === "QUIZ") {
+      const quiz = JSON.parse(m.quiz_json || "{}");
+      html += `Quiz Assessment (pass mark: ${m.pass_score}%)</div><div class="quiz-wrap" id="quiz-${m.milestone_id}">`;
+      (quiz.questions || []).forEach((q, qi) => {
+        html += `<div class="quiz-question" id="qq-${m.milestone_id}-${q.id}">
+          <div class="quiz-q-text">Q${qi+1}. ${q.text}</div>
+          ${q.options.map((opt, oi) => `
+            <label class="quiz-option" id="opt-${m.milestone_id}-${q.id}-${oi}" onclick="selectOpt('${m.milestone_id}','${q.id}',${oi})">
+              <input type="radio" name="${m.milestone_id}-${q.id}" value="${oi}"> ${opt}
+            </label>`).join("")}
+        </div>`;
+      });
+      html += `</div>
+        <button class="btn-submit" id="btn-${m.milestone_id}" onclick="submitQuiz('${m.milestone_id}', '${currentCourse.course_id}')">Submit Quiz</button>
+        <div id="quiz-result-${m.milestone_id}" style="display:none"></div>`;
+    }
+
+    else if (type === "WRITTEN") {
+      html += `Written Response (reviewed by instructor)</div>
+        <textarea class="written-textarea" id="wr-${m.milestone_id}" placeholder="Write your response here. Be thorough and clear — your instructor will review this before unlocking the next milestone…" rows="6"></textarea>
+        <br>
+        <button class="btn-submit" id="btn-${m.milestone_id}" onclick="submitWritten('${m.milestone_id}', '${currentCourse.course_id}')">Submit Response</button>`;
+    }
+
+    html += `</div>`;
+    return html;
+  }
+
+  function toggleCard(mid) {
+    const body  = document.getElementById(`body-${mid}`);
+    const chev  = document.getElementById(`chev-${mid}`);
+    const isOpen = body.classList.contains("open");
+    // Close all others
+    document.querySelectorAll(".milestone-body.open").forEach(b => b.classList.remove("open"));
+    document.querySelectorAll(".chevron.open").forEach(c => c.classList.remove("open"));
+    if (!isOpen) { body.classList.add("open"); if(chev) chev.classList.add("open"); }
+  }
+
+  function toggleCheckbox(mid) {
+    const checked = document.getElementById(`chk-${mid}`).checked;
+    document.getElementById(`btn-${mid}`).disabled = !checked;
+  }
+
+  function selectOpt(mid, qid, optIdx) {
+    document.querySelectorAll(`[id^="opt-${mid}-${qid}-"]`).forEach(el => el.classList.remove("selected"));
+    document.getElementById(`opt-${mid}-${qid}-${optIdx}`).classList.add("selected");
+  }
+
+  async function submitCheckbox(mid, courseId) {
+    const btn = document.getElementById(`btn-${mid}`);
+    btn.disabled = true; btn.textContent = "Saving…";
+    const res = await apiCall("submitCheckbox", { user_id: user.user_id, milestone_id: mid, course_id: courseId });
+    if (res.success) { showToast("Milestone marked complete!", "success"); await refreshProgress(courseId); }
+    else { showToast(res.error || "Error", "error"); btn.disabled = false; btn.textContent = "Mark Complete"; }
+  }
+
+  async function submitQuiz(mid, courseId) {
+    const btn = document.getElementById(`btn-${mid}`);
+    const quiz = milestones.find(m => m.milestone_id === mid);
+    if (!quiz) return;
+    const questions = JSON.parse(quiz.quiz_json || "{}").questions || [];
+
+    const answers = {};
+    let allAnswered = true;
+    questions.forEach(q => {
+      const sel = document.querySelector(`input[name="${mid}-${q.id}"]:checked`);
+      if (sel) answers[q.id] = parseInt(sel.value);
+      else allAnswered = false;
+    });
+
+    if (!allAnswered) { showToast("Please answer all questions before submitting.", "error"); return; }
+
+    btn.disabled = true; btn.textContent = "Submitting…";
+    const res = await apiCall("submitQuiz", { user_id: user.user_id, milestone_id: mid, course_id: courseId, answers });
+
+    if (res.success) {
+      // Show results with correct/wrong highlighting
+      const qData = JSON.parse(quiz.quiz_json || "{}");
+      qData.questions.forEach(q => {
+        const userAns = answers[q.id];
+        const correct = parseInt(q.correct);
+        for (let i = 0; i < q.options.length; i++) {
+          const el = document.getElementById(`opt-${mid}-${q.id}-${i}`);
+          if (!el) continue;
+          el.style.pointerEvents = "none";
+          if (i === correct) el.classList.add("correct");
+          else if (i === userAns && userAns !== correct) el.classList.add("wrong");
+        }
+      });
+
+      const scoreColor = res.passed ? "var(--success)" : "var(--error)";
+      const resultEl = document.getElementById(`quiz-result-${mid}`);
+      resultEl.style.display = "block";
+      resultEl.innerHTML = `
+        <div class="quiz-score-box">
+          <div class="quiz-score-num" style="color:${scoreColor}">${res.score}%</div>
+          <div class="quiz-score-label">${res.correct} of ${res.total} correct · Pass mark: ${res.passScore}%</div>
+          <p style="margin-top:.75rem;font-size:.875rem;color:${scoreColor};font-weight:500">${res.passed ? '🎉 Passed! The next milestone has been unlocked.' : '❌ Not passed. Review the content and try again.'}</p>
+        </div>`;
+      btn.style.display = "none";
+      if (!res.passed) {
+        resultEl.innerHTML += `<button class="btn-retry" onclick="refreshProgress('${courseId}')">Try Again</button>`;
+      }
+      if (res.passed) { showToast(`Quiz passed with ${res.score}%! 🎉`, "success"); await refreshProgress(courseId); }
+      else { showToast(`Score: ${res.score}% — need ${res.passScore}% to pass.`, "error"); }
+    } else {
+      showToast(res.error || "Submission error", "error");
+      btn.disabled = false; btn.textContent = "Submit Quiz";
+    }
+  }
+
+  async function submitWritten(mid, courseId) {
+    const content = document.getElementById(`wr-${mid}`).value.trim();
+    if (!content || content.length < 20) { showToast("Please write a more detailed response (at least 20 characters).", "error"); return; }
+    const btn = document.getElementById(`btn-${mid}`);
+    btn.disabled = true; btn.textContent = "Submitting…";
+    const res = await apiCall("submitWritten", { user_id: user.user_id, milestone_id: mid, course_id: courseId, content });
+    if (res.success) {
+      showToast("Response submitted for review!", "success");
+      await refreshProgress(courseId);
+    } else {
+      showToast(res.error || "Error", "error");
+      btn.disabled = false; btn.textContent = "Submit Response";
+    }
+  }
+
+  async function refreshProgress(courseId) {
+    const pRes = await apiCall("getProgress", { user_id: user.user_id, course_id: courseId });
+    progress = pRes.progress || [];
+    renderTrack();
+  }
+
+  function logout() {
+    clearSession();
+    window.location.href = "index.html";
+  }
+</script>
+</body>
+</html>

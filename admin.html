@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard — WorkForce Academy</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <script src="config.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --navy-950: #0B1221; --navy-900: #111827; --navy-800: #1a2640;
+      --navy-700: #243352; --navy-600: #2e4068; --steel: #4B6FA5;
+      --slate: #8ba3c9; --mist: #c8d6ea;
+      --gold: #C9A84C; --gold-lt: #e8c97a;
+      --white: #F0F4FA; --text-dim: #6b7fa0;
+      --success: #22c55e; --error: #ef4444; --warning: #f59e0b;
+      --sidebar-w: 260px;
+    }
+    html, body { height: 100%; background: var(--navy-950); color: var(--white); font-family: "Inter", sans-serif; }
+    .app { display: flex; min-height: 100vh; }
+
+    /* SIDEBAR */
+    .sidebar {
+      width: var(--sidebar-w); background: var(--navy-900);
+      border-right: 1px solid rgba(255,255,255,0.06);
+      display: flex; flex-direction: column;
+      position: fixed; top: 0; left: 0; bottom: 0; z-index: 100;
+    }
+    .sidebar-header { padding: 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.06); }
+    .brand { display: flex; align-items: center; gap: 10px; margin-bottom: 1.25rem; }
+    .brand-icon { width: 32px; height: 32px; background: var(--gold); border-radius: 7px; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+    .brand-name { font-weight: 600; font-size: 0.9rem; }
+    .brand-sub { font-size: 0.7rem; color: var(--text-dim); }
+    .user-info { background: var(--navy-800); border-radius: 10px; padding: 0.875rem 1rem; }
+    .user-name { font-weight: 600; font-size: 0.9rem; }
+    .user-role { font-size: 0.72rem; color: var(--gold); text-transform: uppercase; letter-spacing: 0.08em; margin-top: 2px; }
+
+    .nav { padding: 1rem; flex: 1; }
+    .nav-item {
+      display: flex; align-items: center; gap: 10px; padding: 0.7rem 1rem;
+      border-radius: 8px; cursor: pointer; color: var(--slate); font-size: 0.875rem;
+      transition: all 0.15s; margin-bottom: 2px; border: none; background: transparent;
+      width: 100%; text-align: left; font-family: "Inter", sans-serif;
+    }
+    .nav-item:hover { background: var(--navy-800); color: var(--white); }
+    .nav-item.active { background: rgba(201,168,76,0.12); color: var(--gold-lt); }
+    .nav-badge {
+      margin-left: auto; background: var(--error); color: white;
+      border-radius: 10px; padding: 0.1rem 0.5rem; font-size: 0.7rem; font-weight: 600;
+    }
+
+    .sidebar-footer { padding: 1.25rem; border-top: 1px solid rgba(255,255,255,0.06); }
+    .btn-logout { width: 100%; padding: 0.625rem; background: transparent; border: 1px solid var(--navy-700); border-radius: 8px; color: var(--text-dim); font-family: "Inter", sans-serif; font-size: 0.82rem; cursor: pointer; transition: all 0.15s; }
+    .btn-logout:hover { border-color: var(--error); color: #fca5a5; }
+
+    /* MAIN */
+    .main { margin-left: var(--sidebar-w); flex: 1; display: flex; flex-direction: column; }
+    .topbar { padding: 1.25rem 2rem; border-bottom: 1px solid rgba(255,255,255,0.06); background: var(--navy-900); display: flex; align-items: center; justify-content: space-between; }
+    .topbar-title { font-family: "DM Serif Display", serif; font-size: 1.4rem; }
+    .topbar-sub { font-size: 0.8rem; color: var(--text-dim); margin-top: 2px; }
+
+    .content { padding: 2rem; flex: 1; }
+
+    /* TABS */
+    .view { display: none; }
+    .view.active { display: block; }
+
+    /* STAT CARDS */
+    .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 2rem; }
+    .stat-card { background: var(--navy-900); border: 1px solid rgba(255,255,255,0.06); border-radius: 14px; padding: 1.25rem 1.5rem; }
+    .stat-card-num { font-family: "DM Serif Display", serif; font-size: 2rem; color: var(--gold-lt); line-height: 1; margin-bottom: 4px; }
+    .stat-card-label { font-size: 0.78rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.07em; }
+
+    /* TABLES */
+    .table-wrap { background: var(--navy-900); border: 1px solid rgba(255,255,255,0.06); border-radius: 14px; overflow: hidden; }
+    .table-header { padding: 1.25rem 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.06); display: flex; align-items: center; justify-content: space-between; }
+    .table-header h3 { font-family: "DM Serif Display", serif; font-size: 1.15rem; }
+    .table-header p { font-size: 0.8rem; color: var(--text-dim); margin-top: 2px; }
+
+    table { width: 100%; border-collapse: collapse; }
+    thead th { padding: 0.875rem 1.5rem; text-align: left; font-size: 0.72rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.08em; font-weight: 500; border-bottom: 1px solid rgba(255,255,255,0.06); }
+    tbody tr { border-bottom: 1px solid rgba(255,255,255,0.04); transition: background 0.15s; }
+    tbody tr:last-child { border: none; }
+    tbody tr:hover { background: rgba(255,255,255,0.02); }
+    tbody td { padding: 1rem 1.5rem; font-size: 0.875rem; color: var(--slate); vertical-align: middle; }
+    tbody td:first-child { color: var(--white); font-weight: 500; }
+
+    .badge { display: inline-flex; align-items: center; gap: 4px; padding: 0.25rem 0.625rem; border-radius: 20px; font-size: 0.75rem; font-weight: 500; }
+    .badge--locked    { background: rgba(107,127,160,.12); color: var(--text-dim); }
+    .badge--unlocked  { background: rgba(75,111,165,.15); color: var(--slate); }
+    .badge--submitted { background: rgba(245,158,11,.15); color: var(--warning); }
+    .badge--passed    { background: rgba(34,197,94,.15); color: var(--success); }
+    .badge--failed    { background: rgba(239,68,68,.12); color: #fca5a5; }
+
+    /* APPROVE/REJECT BUTTONS */
+    .action-btns { display: flex; gap: 6px; }
+    .btn-approve {
+      padding: 0.4rem 0.875rem; background: rgba(34,197,94,0.12); color: var(--success);
+      border: 1px solid rgba(34,197,94,0.25); border-radius: 6px;
+      font-size: 0.8rem; font-weight: 500; cursor: pointer; font-family: "Inter", sans-serif;
+      transition: all 0.15s;
+    }
+    .btn-approve:hover { background: rgba(34,197,94,0.2); }
+    .btn-reject {
+      padding: 0.4rem 0.875rem; background: rgba(239,68,68,0.1); color: #fca5a5;
+      border: 1px solid rgba(239,68,68,0.2); border-radius: 6px;
+      font-size: 0.8rem; font-weight: 500; cursor: pointer; font-family: "Inter", sans-serif;
+      transition: all 0.15s;
+    }
+    .btn-reject:hover { background: rgba(239,68,68,0.18); }
+
+    /* SEARCH/FILTER BAR */
+    .filter-bar { display: flex; gap: 0.75rem; padding: 1rem 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.06); }
+    .filter-input {
+      flex: 1; padding: 0.5rem 0.875rem;
+      background: var(--navy-800); border: 1px solid var(--navy-600);
+      border-radius: 8px; color: var(--white); font-family: "Inter", sans-serif; font-size: 0.875rem;
+      outline: none; transition: border-color 0.2s;
+    }
+    .filter-input:focus { border-color: var(--gold); }
+    .filter-input::placeholder { color: var(--text-dim); }
+    .filter-select {
+      padding: 0.5rem 0.875rem; background: var(--navy-800); border: 1px solid var(--navy-600);
+      border-radius: 8px; color: var(--slate); font-family: "Inter", sans-serif; font-size: 0.875rem;
+      outline: none; cursor: pointer;
+    }
+
+    /* ADD USER MODAL */
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 200; align-items: center; justify-content: center; }
+    .modal-overlay.open { display: flex; }
+    .modal { background: var(--navy-800); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 2rem; width: 100%; max-width: 480px; }
+    .modal h3 { font-family: "DM Serif Display", serif; font-size: 1.4rem; margin-bottom: 1.5rem; }
+    .field { margin-bottom: 1.1rem; }
+    .field label { display: block; font-size: 0.75rem; color: var(--mist); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.35rem; }
+    .field input, .field select {
+      width: 100%; padding: 0.7rem 0.875rem; background: var(--navy-900); border: 1.5px solid var(--navy-700);
+      border-radius: 8px; color: var(--white); font-family: "Inter", sans-serif; font-size: 0.9rem; outline: none;
+    }
+    .field input:focus, .field select:focus { border-color: var(--gold); }
+    .field select option { background: var(--navy-900); }
+    .modal-actions { display: flex; gap: 0.75rem; margin-top: 1.5rem; }
+    .btn-primary { flex: 1; padding: 0.75rem; background: var(--gold); color: var(--navy-950); border: none; border-radius: 8px; font-family: "Inter", sans-serif; font-weight: 600; cursor: pointer; font-size: 0.9rem; }
+    .btn-primary:hover { background: var(--gold-lt); }
+    .btn-ghost { flex: 1; padding: 0.75rem; background: transparent; color: var(--slate); border: 1px solid var(--navy-600); border-radius: 8px; font-family: "Inter", sans-serif; cursor: pointer; font-size: 0.9rem; }
+    .btn-ghost:hover { border-color: var(--steel); color: var(--white); }
+    .btn-add { padding: 0.55rem 1.1rem; background: rgba(201,168,76,0.12); color: var(--gold); border: 1px solid rgba(201,168,76,0.25); border-radius: 8px; font-size: 0.82rem; font-weight: 500; cursor: pointer; font-family: "Inter", sans-serif; transition: all 0.15s; }
+    .btn-add:hover { background: rgba(201,168,76,0.2); }
+
+    /* CONTENT REVIEW PANEL */
+    .review-content-box {
+      background: var(--navy-950); border-radius: 8px; padding: 1rem;
+      font-size: 0.85rem; color: var(--mist); line-height: 1.7; max-height: 120px; overflow-y: auto;
+      border: 1px solid var(--navy-700); font-style: italic;
+    }
+
+    /* LEARNER PROGRESS GRID */
+    .learner-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1rem; }
+    .learner-card { background: var(--navy-900); border: 1px solid rgba(255,255,255,0.06); border-radius: 14px; padding: 1.25rem; }
+    .learner-card-header { display: flex; align-items: center; gap: 10px; margin-bottom: 1rem; }
+    .avatar { width: 38px; height: 38px; border-radius: 50%; background: linear-gradient(135deg, var(--steel), var(--navy-600)); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem; color: var(--white); flex-shrink: 0; }
+    .learner-name { font-weight: 600; font-size: 0.9rem; color: var(--white); }
+    .learner-meta { font-size: 0.75rem; color: var(--text-dim); }
+
+    .ms-progress-list { }
+    .ms-progress-row { display: flex; align-items: center; gap: 8px; padding: 0.4rem 0; border-bottom: 1px solid rgba(255,255,255,0.04); font-size: 0.82rem; }
+    .ms-progress-row:last-child { border: none; }
+    .ms-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .ms-dot.LOCKED    { background: var(--navy-600); }
+    .ms-dot.UNLOCKED  { background: var(--steel); }
+    .ms-dot.SUBMITTED { background: var(--warning); }
+    .ms-dot.PASSED    { background: var(--success); }
+    .ms-dot.FAILED    { background: var(--error); }
+    .ms-title { color: var(--slate); flex: 1; }
+    .ms-status-text { font-size: 0.75rem; color: var(--text-dim); }
+
+    /* SKELETON */
+    .skeleton { background: var(--navy-800); border-radius: 8px; animation: pulse 1.5s ease-in-out infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+    /* TOAST */
+    .wtp-toast { position: fixed; bottom: 2rem; right: 2rem; background: var(--navy-700); color: var(--white); padding: 0.875rem 1.25rem; border-radius: 10px; font-size: 0.875rem; box-shadow: 0 8px 32px rgba(0,0,0,0.4); transform: translateY(20px); opacity: 0; transition: all 0.3s ease; z-index: 9999; border-left: 3px solid var(--steel); }
+    .wtp-toast--visible { transform: translateY(0); opacity: 1; }
+    .wtp-toast--success { border-left-color: var(--success); }
+    .wtp-toast--error   { border-left-color: var(--error); }
+
+    .empty-row td { text-align: center; color: var(--text-dim); padding: 2rem; font-size: 0.875rem; }
+
+    @media (max-width: 1024px) { .stat-grid { grid-template-columns: repeat(2,1fr); } }
+    @media (max-width: 768px) { .main { margin-left: 0; } .content { padding: 1rem; } }
+  </style>
+</head>
+<body>
+<div class="app">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="brand">
+        <div class="brand-icon">🎓</div>
+        <div><div class="brand-name">WorkForce Academy</div><div class="brand-sub">Admin Panel</div></div>
+      </div>
+      <div class="user-info">
+        <div class="user-name" id="sidebarName">Loading…</div>
+        <div class="user-role" id="sidebarRole">—</div>
+      </div>
+    </div>
+    <nav class="nav">
+      <button class="nav-item active" onclick="switchView('overview')">📊 Overview</button>
+      <button class="nav-item" onclick="switchView('pending')" id="nav-pending">
+        ⏳ Pending Reviews <span class="nav-badge" id="pendingBadge" style="display:none">0</span>
+      </button>
+      <button class="nav-item" onclick="switchView('learners')">👥 Learner Progress</button>
+      <button class="nav-item" onclick="switchView('users')" id="nav-users">👤 Manage Users</button>
+    </nav>
+    <div class="sidebar-footer">
+      <button class="btn-logout" onclick="logout()">Sign Out</button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+    <div class="topbar">
+      <div>
+        <div class="topbar-title" id="topbarTitle">Overview</div>
+        <div class="topbar-sub" id="topbarSub">Platform at a glance</div>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- VIEW: OVERVIEW -->
+      <div class="view active" id="view-overview">
+        <div class="stat-grid" id="statGrid">
+          <div class="stat-card"><div class="stat-card-num skeleton" style="width:3rem;height:2rem"></div><div class="stat-card-label">Learners</div></div>
+          <div class="stat-card"><div class="stat-card-num skeleton" style="width:3rem;height:2rem"></div><div class="stat-card-label">Milestones Passed</div></div>
+          <div class="stat-card"><div class="stat-card-num skeleton" style="width:3rem;height:2rem"></div><div class="stat-card-label">Awaiting Review</div></div>
+          <div class="stat-card"><div class="stat-card-num skeleton" style="width:3rem;height:2rem"></div><div class="stat-card-label">Completion Rate</div></div>
+        </div>
+
+        <div class="table-wrap">
+          <div class="table-header">
+            <div><h3>All Learner Progress</h3><p>Every learner's status across all milestones</p></div>
+          </div>
+          <div class="filter-bar">
+            <input type="text" class="filter-input" placeholder="Search learner name…" oninput="filterProgressTable(this.value)">
+            <select class="filter-select" onchange="filterByStatus(this.value)">
+              <option value="">All statuses</option>
+              <option value="SUBMITTED">Awaiting Review</option>
+              <option value="PASSED">Passed</option>
+              <option value="FAILED">Failed</option>
+              <option value="LOCKED">Locked</option>
+            </select>
+          </div>
+          <div style="overflow-x:auto">
+            <table id="progressTable">
+              <thead><tr>
+                <th>Learner</th><th>Milestone</th><th>Course</th><th>Status</th><th>Score</th><th>Date</th>
+              </tr></thead>
+              <tbody id="progressBody">
+                <tr><td colspan="6" style="padding:2rem;text-align:center;color:var(--text-dim)">Loading…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- VIEW: PENDING REVIEWS -->
+      <div class="view" id="view-pending">
+        <div class="table-wrap">
+          <div class="table-header">
+            <div><h3>Written Submissions — Pending Review</h3><p>Approve or reject learner written responses to unlock their next milestone</p></div>
+          </div>
+          <div style="overflow-x:auto">
+            <table id="pendingTable">
+              <thead><tr>
+                <th>Learner</th><th>Milestone</th><th>Submitted</th><th>Response Preview</th><th>Action</th>
+              </tr></thead>
+              <tbody id="pendingBody">
+                <tr><td colspan="5" style="padding:2rem;text-align:center;color:var(--text-dim)">Loading…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- VIEW: LEARNER PROGRESS CARDS -->
+      <div class="view" id="view-learners">
+        <div style="margin-bottom:1.5rem;display:flex;align-items:center;gap:.75rem">
+          <input type="text" class="filter-input" style="max-width:320px" placeholder="Search learner…" oninput="filterLearnerCards(this.value)">
+        </div>
+        <div class="learner-grid" id="learnerGrid">
+          <div class="skeleton" style="height:160px;border-radius:14px;"></div>
+          <div class="skeleton" style="height:160px;border-radius:14px;"></div>
+          <div class="skeleton" style="height:160px;border-radius:14px;"></div>
+        </div>
+      </div>
+
+      <!-- VIEW: USERS -->
+      <div class="view" id="view-users">
+        <div class="table-wrap">
+          <div class="table-header">
+            <div><h3>Manage Learners</h3><p>Add new learners or view existing accounts</p></div>
+            <button class="btn-add" onclick="openAddModal()">+ Add Learner</button>
+          </div>
+          <div style="overflow-x:auto">
+            <table>
+              <thead><tr><th>Name</th><th>Username</th><th>Email</th><th>Enrolled In</th></tr></thead>
+              <tbody id="usersBody">
+                <tr><td colspan="4" style="padding:2rem;text-align:center;color:var(--text-dim)">Loading…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+  </main>
+</div>
+
+<!-- ADD USER MODAL -->
+<div class="modal-overlay" id="addModal">
+  <div class="modal">
+    <h3>Add New Learner</h3>
+    <div class="field"><label>Full Name</label><input type="text" id="nf-name" placeholder="Jane Smith"></div>
+    <div class="field"><label>Username</label><input type="text" id="nf-username" placeholder="jane.smith"></div>
+    <div class="field"><label>Email</label><input type="email" id="nf-email" placeholder="jane@company.com"></div>
+    <div class="field"><label>Temporary Password</label><input type="password" id="nf-password" placeholder="Set a temporary password"></div>
+    <div class="field"><label>Enrol in Course</label>
+      <select id="nf-course">
+        <option value="">— Select course —</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-ghost" onclick="closeAddModal()">Cancel</button>
+      <button class="btn-primary" onclick="createUser()">Create Account</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  let user, allProgress = [], pendingReviews = [], allUsers = [], allCourses = [], milestones = [];
+  let filteredProgress = [];
+
+  window.addEventListener("DOMContentLoaded", async () => {
+    user = requireAuth(["TEACHER", "ADMIN"]);
+    if (!user) return;
+    document.getElementById("sidebarName").textContent = user.full_name;
+    document.getElementById("sidebarRole").textContent = user.role;
+
+    // Hide manage users nav for TEACHER role
+    if (user.role === "TEACHER") {
+      document.getElementById("nav-users").style.display = "none";
+    }
+
+    await Promise.all([
+      loadOverview(),
+      loadPendingReviews(),
+      loadCourses()
+    ]);
+  });
+
+  async function loadCourses() {
+    const res = await apiCall("getCourses", { user_id: user.user_id, role: user.role });
+    allCourses = res.courses || [];
+    // Populate course select in modal
+    const sel = document.getElementById("nf-course");
+    allCourses.forEach(c => {
+      const opt = document.createElement("option");
+      opt.value = c.course_id; opt.textContent = c.title;
+      sel.appendChild(opt);
+    });
+  }
+
+  async function loadOverview() {
+    const [pRes, uRes] = await Promise.all([
+      apiCall("getAllProgress", { requester_role: user.role }),
+      apiCall("getUsers", { requester_role: user.role })
+    ]);
+    allProgress = pRes.progress || [];
+    filteredProgress = [...allProgress];
+    allUsers = uRes.users || [];
+
+    renderStats();
+    renderProgressTable(filteredProgress);
+    renderLearnerCards();
+    renderUsersTable();
+  }
+
+  async function loadPendingReviews() {
+    const res = await apiCall("getPendingReviews", { requester_role: user.role });
+    pendingReviews = res.pending || [];
+    const count = pendingReviews.length;
+    const badge = document.getElementById("pendingBadge");
+    if (count > 0) { badge.style.display = "inline"; badge.textContent = count; }
+    else { badge.style.display = "none"; }
+    renderPendingTable();
+  }
+
+  function renderStats() {
+    const learners = new Set(allProgress.map(p => p.user_id)).size;
+    const passed   = allProgress.filter(p => p.status === "PASSED").length;
+    const pending  = allProgress.filter(p => p.status === "SUBMITTED").length;
+    const total    = allProgress.filter(p => p.status !== "LOCKED").length;
+    const rate     = total ? Math.round((passed / allProgress.length) * 100) : 0;
+
+    document.getElementById("statGrid").innerHTML = `
+      <div class="stat-card"><div class="stat-card-num">${learners}</div><div class="stat-card-label">Learners</div></div>
+      <div class="stat-card"><div class="stat-card-num">${passed}</div><div class="stat-card-label">Milestones Passed</div></div>
+      <div class="stat-card"><div class="stat-card-num">${pending}</div><div class="stat-card-label">Awaiting Review</div></div>
+      <div class="stat-card"><div class="stat-card-num">${rate}%</div><div class="stat-card-label">Completion Rate</div></div>`;
+  }
+
+  function renderProgressTable(data) {
+    const tbody = document.getElementById("progressBody");
+    if (!data.length) {
+      tbody.innerHTML = `<tr><td colspan="6" class="empty-row" style="text-align:center;color:var(--text-dim);padding:2rem">No progress records found.</td></tr>`;
+      return;
+    }
+    tbody.innerHTML = data.map(p => `
+      <tr>
+        <td>${p.full_name || p.user_id}</td>
+        <td style="color:var(--slate)">${p.milestone_id}</td>
+        <td style="color:var(--text-dim);font-size:.8rem">${p.course_id}</td>
+        <td>${statusBadge(p.status)}</td>
+        <td style="font-family:'JetBrains Mono',monospace;font-size:.85rem">${p.score ? p.score + "%" : "—"}</td>
+        <td style="color:var(--text-dim);font-size:.8rem">${fmtDate(p.approved_at)}</td>
+      </tr>`).join("");
+  }
+
+  function renderPendingTable() {
+    const tbody = document.getElementById("pendingBody");
+    if (!pendingReviews.length) {
+      tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:var(--text-dim);padding:2rem">No submissions awaiting review. 🎉</td></tr>`;
+      return;
+    }
+    tbody.innerHTML = pendingReviews.map(sub => `
+      <tr id="sub-row-${sub.sub_id}">
+        <td>${sub.full_name || sub.user_id}</td>
+        <td style="color:var(--slate)">${sub.milestone_title || sub.milestone_id}</td>
+        <td style="color:var(--text-dim);font-size:.8rem">${fmtDate(sub.submitted_at)}</td>
+        <td>
+          <div class="review-content-box">${escHtml(sub.content)}</div>
+        </td>
+        <td>
+          <div class="action-btns">
+            <button class="btn-approve" onclick="approve('${sub.user_id}','${sub.milestone_id}','${sub.course_id}','${sub.sub_id}')">✓ Approve</button>
+            <button class="btn-reject"  onclick="reject('${sub.user_id}','${sub.milestone_id}','${sub.course_id}','${sub.sub_id}')">✕ Reject</button>
+          </div>
+        </td>
+      </tr>`).join("");
+  }
+
+  function renderLearnerCards() {
+    const learnerMap = {};
+    allProgress.forEach(p => {
+      if (!learnerMap[p.user_id]) {
+        learnerMap[p.user_id] = { name: p.full_name, username: p.username, milestones: [] };
+      }
+      learnerMap[p.user_id].milestones.push(p);
+    });
+
+    const grid = document.getElementById("learnerGrid");
+    const entries = Object.entries(learnerMap);
+    if (!entries.length) { grid.innerHTML = `<p style="color:var(--text-dim);font-size:.875rem">No learner data.</p>`; return; }
+
+    grid.innerHTML = entries.map(([uid, data]) => {
+      const initials = data.name ? data.name.split(" ").map(w=>w[0]).join("").substring(0,2).toUpperCase() : "??";
+      const passed = data.milestones.filter(m => m.status === "PASSED").length;
+      const total  = data.milestones.length;
+      return `
+        <div class="learner-card" data-name="${(data.name||"").toLowerCase()}">
+          <div class="learner-card-header">
+            <div class="avatar">${initials}</div>
+            <div>
+              <div class="learner-name">${data.name || uid}</div>
+              <div class="learner-meta">${data.username} · ${passed}/${total} milestones passed</div>
+            </div>
+          </div>
+          <div class="ms-progress-list">
+            ${data.milestones.sort((a,b)=>a.milestone_id.localeCompare(b.milestone_id)).map(m => `
+              <div class="ms-progress-row">
+                <div class="ms-dot ${m.status}"></div>
+                <div class="ms-title">${m.milestone_id}</div>
+                <div class="ms-status-text">${m.status}</div>
+              </div>`).join("")}
+          </div>
+        </div>`;
+    }).join("");
+  }
+
+  function renderUsersTable() {
+    const tbody = document.getElementById("usersBody");
+    if (!allUsers.length) { tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;color:var(--text-dim);padding:2rem">No learners found.</td></tr>`; return; }
+    tbody.innerHTML = allUsers.map(u => `
+      <tr>
+        <td>${u.full_name}</td>
+        <td style="font-family:'JetBrains Mono',monospace;font-size:.82rem;color:var(--slate)">${u.username}</td>
+        <td style="color:var(--text-dim)">${u.email}</td>
+        <td style="color:var(--text-dim);font-size:.82rem">${u.enrolled_courses || "—"}</td>
+      </tr>`).join("");
+  }
+
+  // APPROVE
+  async function approve(userId, milestoneId, courseId, subId) {
+    const row = document.getElementById(`sub-row-${subId}`);
+    if (row) row.style.opacity = "0.5";
+    const res = await apiCall("approveMilestone", {
+      user_id: userId, milestone_id: milestoneId, course_id: courseId,
+      reviewer_id: user.user_id, requester_role: user.role
+    });
+    if (res.success) {
+      showToast("Milestone approved — next milestone unlocked!", "success");
+      pendingReviews = pendingReviews.filter(s => !(s.user_id===userId && s.milestone_id===milestoneId));
+      renderPendingTable();
+      await loadOverview();
+      updatePendingBadge();
+    } else {
+      showToast(res.error || "Error", "error");
+      if (row) row.style.opacity = "1";
+    }
+  }
+
+  // REJECT
+  async function reject(userId, milestoneId, courseId, subId) {
+    const row = document.getElementById(`sub-row-${subId}`);
+    if (row) row.style.opacity = "0.5";
+    const res = await apiCall("rejectMilestone", {
+      user_id: userId, milestone_id: milestoneId, course_id: courseId,
+      reviewer_id: user.user_id, requester_role: user.role
+    });
+    if (res.success) {
+      showToast("Submission rejected. Learner can resubmit.", "info");
+      pendingReviews = pendingReviews.filter(s => !(s.user_id===userId && s.milestone_id===milestoneId));
+      renderPendingTable();
+      await loadOverview();
+      updatePendingBadge();
+    } else {
+      showToast(res.error || "Error", "error");
+      if (row) row.style.opacity = "1";
+    }
+  }
+
+  function updatePendingBadge() {
+    const badge = document.getElementById("pendingBadge");
+    const count = pendingReviews.length;
+    if (count > 0) { badge.style.display = "inline"; badge.textContent = count; }
+    else badge.style.display = "none";
+  }
+
+  // FILTERS
+  function filterProgressTable(query) {
+    const q = query.toLowerCase();
+    filteredProgress = allProgress.filter(p => (p.full_name||"").toLowerCase().includes(q));
+    renderProgressTable(filteredProgress);
+  }
+  function filterByStatus(status) {
+    filteredProgress = status ? allProgress.filter(p => p.status === status) : [...allProgress];
+    renderProgressTable(filteredProgress);
+  }
+  function filterLearnerCards(query) {
+    const q = query.toLowerCase();
+    document.querySelectorAll(".learner-card").forEach(card => {
+      card.style.display = card.dataset.name.includes(q) ? "" : "none";
+    });
+  }
+
+  // VIEW SWITCH
+  const viewTitles = {
+    overview: ["Overview", "Platform at a glance"],
+    pending:  ["Pending Reviews", "Written submissions awaiting your approval"],
+    learners: ["Learner Progress", "Per-learner milestone tracking"],
+    users:    ["Manage Users", "Add and view learner accounts"]
+  };
+  function switchView(name) {
+    document.querySelectorAll(".view").forEach(v => v.classList.remove("active"));
+    document.querySelectorAll(".nav-item").forEach(n => n.classList.remove("active"));
+    document.getElementById(`view-${name}`).classList.add("active");
+    event.currentTarget.classList.add("active");
+    const [title, sub] = viewTitles[name] || ["", ""];
+    document.getElementById("topbarTitle").textContent = title;
+    document.getElementById("topbarSub").textContent = sub;
+  }
+
+  // ADD USER MODAL
+  function openAddModal() { document.getElementById("addModal").classList.add("open"); }
+  function closeAddModal() { document.getElementById("addModal").classList.remove("open"); }
+
+  async function createUser() {
+    const name     = document.getElementById("nf-name").value.trim();
+    const username = document.getElementById("nf-username").value.trim();
+    const email    = document.getElementById("nf-email").value.trim();
+    const password = document.getElementById("nf-password").value;
+    const course   = document.getElementById("nf-course").value;
+
+    if (!name || !username || !email || !password) { showToast("Please fill in all fields.", "error"); return; }
+
+    const password_hash = await sha256(password);
+    const res = await apiCall("createUser", {
+      full_name: name, username, password_hash, email, role: "LEARNER",
+      course_id: course, requester_role: user.role
+    });
+
+    if (res.success) {
+      showToast(`Account created for ${name}!`, "success");
+      closeAddModal();
+      ["nf-name","nf-username","nf-email","nf-password"].forEach(id => document.getElementById(id).value = "");
+      await loadOverview();
+    } else {
+      showToast(res.error || "Error creating user", "error");
+    }
+  }
+
+  function escHtml(str) {
+    return (str||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+  }
+  function logout() { clearSession(); window.location.href = "index.html"; }
+</script>
+</body>
+</html>
