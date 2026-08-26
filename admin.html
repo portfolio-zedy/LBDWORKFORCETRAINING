@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard — Living By Design Nation</title>
+  <link rel="icon" type="image/png" href="bck.png">
+  <link rel="apple-touch-icon" href="bck.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<button class="mobile-menu-btn" id="mobileMenuBtn" onclick="toggleMobileSidebar()" aria-label="Toggle menu">☰</button>
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeMobileSidebar()"></div>
+<div class="app">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="brand">
+        <div class="brand-icon"><img src="bck.png" alt="Living By Design Nation"></div>
+        <div>
+          <div class="brand-name">Living By Design Nation</div>
+          <div class="brand-sub">Admin Panel</div>
+        </div>
+      </div>
+      <div class="user-info">
+        <div class="user-name" id="sidebarName">Loading…</div>
+        <div class="user-role" id="sidebarRole">—</div>
+      </div>
+    </div>
+    <nav class="nav">
+      <button class="nav-item active" onclick="switchView('overview')">📊 Overview</button>
+      <button class="nav-item" onclick="switchView('pending')" id="nav-pending">
+        ⏳ Pending Reviews <span class="nav-badge" id="pendingBadge" style="display:none">0</span>
+      </button>
+      <button class="nav-item" onclick="switchView('courses')" id="nav-courses">
+        📚 Manage Courses
+      </button>
+      <button class="nav-item" onclick="switchView('learners')">👥 Member Progress</button>
+      <button class="nav-item" onclick="switchView('users')" id="nav-users">
+        👤 Manage Users <span class="nav-badge" id="newUsersBadge" style="display:none">0</span>
+      </button>
+      <button class="nav-item" onclick="switchView('facilitators')" id="nav-facilitators">
+        🎓 Facilitator Requests <span class="nav-badge" id="facilitatorBadge" style="display:none">0</span>
+      </button>
+    </nav>
+    <div class="sidebar-footer">
+      <button class="btn-logout" onclick="logout()">Sign Out</button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+    <div class="topbar">
+      <div>
+        <div class="topbar-title" id="topbarTitle">Overview</div>
+        <div class="topbar-sub" id="topbarSub">Platform at a glance</div>
+      </div>
+      <button class="btn-action btn-secondary" style="padding: 0.55rem 1rem; font-size: 0.85rem;" onclick="pollUpdates()">🔄 Refresh Data</button>
+    </div>
+
+    <div class="content">
+
+      <!-- VIEW: OVERVIEW -->
+      <div class="view active" id="view-overview">
+        <div class="stat-grid" id="statGrid">
+          <div class="stat-card"><div class="stat-card-num skeleton" style="width:3rem;height:2rem"></div><div class="stat-card-label">Members</div></div>
+          <div class="stat-card"><div class="stat-card-num skeleton" style="width:3rem;height:2rem"></div><div class="stat-card-label">Enrolled Members</div></div>
+          <div class="stat-card"><div class="stat-card-num skeleton" style="width:3rem;height:2rem"></div><div class="stat-card-label">Awaiting Review</div></div>
+          <div class="stat-card"><div class="stat-card-num skeleton" style="width:3rem;height:2rem"></div><div class="stat-card-label">Members Completed</div></div>
+        </div>
+
+        <div class="table-wrap">
+          <div class="table-header">
+            <div><h3>All Member Progress</h3><p>Every member's status across all milestones</p></div>
+          </div>
+          <div class="filter-bar" style="display: flex; gap: 0.75rem; padding: 1rem 1.5rem; border-bottom: 1px solid var(--border-subtle);">
+            <input type="text" class="filter-input" placeholder="Search member name…" oninput="filterProgressTable(this.value)">
+            <select class="filter-select" onchange="filterByStatus(this.value)">
+              <option value="">All members</option>
+              <option value="SUBMITTED">Has submission awaiting review</option>
+              <option value="FAILED">Has a failed milestone</option>
+              <option value="UNLOCKED">Currently mid-milestone</option>
+              <option value="COMPLETE">Fully completed</option>
+            </select>
+          </div>
+          <div style="overflow-x:auto">
+            <table id="progressTable">
+              <thead><tr>
+                <th>Member</th><th>Course(s)</th><th>Milestones</th><th>Completion</th><th>Up Next</th>
+              </tr></thead>
+              <tbody id="progressBody">
+                <tr><td colspan="5" style="padding:2rem;text-align:center;color:var(--text-dim)">Loading…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- VIEW: PENDING REVIEWS -->
+      <div class="view" id="view-pending">
+        <div class="table-wrap">
+          <div class="table-header">
+            <div><h3>Written Submissions — Pending Review</h3><p>Approve or reject member written responses to unlock their next milestone</p></div>
+          </div>
+          <div style="overflow-x:auto">
+            <table id="pendingTable">
+              <thead><tr>
+                <th>Member</th><th>Milestone</th><th>Submitted</th><th>Response Preview</th><th>Action</th>
+              </tr></thead>
+              <tbody id="pendingBody">
+                <tr><td colspan="5" style="padding:2rem;text-align:center;color:var(--text-dim)">Loading…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- VIEW: COURSES -->
+      <div class="view" id="view-courses">
+        <div class="table-wrap">
+          <div class="table-header">
+            <div><h3>Course Library</h3><p>Create and structure learning pathways</p></div>
+            <button class="btn-action btn-primary" style="padding: 0.55rem 1.1rem; font-size: 0.82rem;" onclick="openCourseModal()">+ New Course</button>
+          </div>
+          <div style="overflow-x:auto">
+            <table>
+              <thead><tr><th>Course Title</th><th>Description</th><th>Course ID</th><th>Action</th></tr></thead>
+              <tbody id="adminCoursesBody">
+                <tr><td colspan="4" style="padding:2rem;text-align:center;color:var(--text-dim)">Loading…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- VIEW: LEARNER PROGRESS CARDS -->
+      <div class="view" id="view-learners">
+        <div style="margin-bottom:1.5rem;display:flex;align-items:center;gap:.75rem">
+          <input type="text" class="filter-input" style="max-width:320px" placeholder="Search member…" oninput="filterLearnerCards(this.value)">
+        </div>
+        <div class="learner-grid" id="learnerGrid">
+          <div class="skeleton" style="height:160px;border-radius:14px;"></div>
+          <div class="skeleton" style="height:160px;border-radius:14px;"></div>
+          <div class="skeleton" style="height:160px;border-radius:14px;"></div>
+        </div>
+      </div>
+
+      <!-- VIEW: USERS -->
+      <div class="view" id="view-users">
+        <div class="table-wrap">
+          <div class="table-header">
+            <div><h3>Manage Members</h3><p id="usersViewSub">Add new members or view existing accounts</p></div>
+            <button class="btn-action btn-primary" id="addMemberBtn" style="padding: 0.55rem 1.1rem; font-size: 0.82rem;" onclick="openAddUserModal()">+ Add Member</button>
+          </div>
+          <div style="overflow-x:auto">
+            <table>
+              <thead><tr><th>Name</th><th>Username</th><th>Email</th><th>Enrolled In</th><th>Action</th></tr></thead>
+              <tbody id="usersBody">
+                <tr><td colspan="5" style="padding:2rem;text-align:center;color:var(--text-dim)">Loading…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- VIEW: FACILITATOR REQUESTS -->
+      <div class="view" id="view-facilitators">
+        <div class="table-wrap" style="margin-bottom: 1.5rem;">
+          <div class="table-header">
+            <div><h3>Facilitator Clearance Requests</h3><p>Approve leadership accounts before they can sign in</p></div>
+          </div>
+          <div style="overflow-x:auto">
+            <table>
+              <thead><tr><th>Name</th><th>Username</th><th>Requested</th><th>Action</th></tr></thead>
+              <tbody id="facilitatorsBody">
+                <tr><td colspan="4" style="padding:2rem;text-align:center;color:var(--text-dim)">Loading…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <div class="table-header">
+            <div><h3>Active Facilitators</h3><p>Promote a trusted facilitator to full Admin access</p></div>
+          </div>
+          <div style="overflow-x:auto">
+            <table>
+              <thead><tr><th>Name</th><th>Username</th><th>Active Since</th><th>Action</th></tr></thead>
+              <tbody id="activeTeachersBody">
+                <tr><td colspan="4" style="padding:2rem;text-align:center;color:var(--text-dim)">Loading…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+
+    <footer class="site-footer"><span class="dot">•</span>LIVING BY DESIGN NATION<span class="dot">•</span>WORKFORCE TRAINING CENTER<span class="dot">•</span><span id="footerYear"></span></footer>
+  </main>
+</div>
+
+<!-- ADD USER MODAL -->
+<div class="modal-overlay" id="addUserModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 200; align-items: center; justify-content: center;">
+  <div class="modal" style="background: var(--bg-panel); border: 1px solid var(--border-subtle); border-radius: 16px; padding: 2rem; width: calc(100% - 2rem); max-width: 480px;">
+    <h3 style="font-family: 'DM Serif Display', serif; font-size: 1.4rem; margin-bottom: 1.5rem;">Add New Member</h3>
+    <div class="field"><label>Full Name</label><input type="text" id="nf-name" placeholder="Jane Smith"></div>
+    <div class="field"><label>Username</label><input type="text" id="nf-username" placeholder="jane.smith"></div>
+    <div class="field"><label>Email</label><input type="email" id="nf-email" placeholder="jane@company.com"></div>
+    <div class="field"><label>Temporary Password</label><input type="password" id="nf-password" placeholder="Set a temporary password"></div>
+    <div class="field"><label>Enrol in Course</label>
+      <select id="nf-course">
+        <option value="">— Select course —</option>
+      </select>
+    </div>
+    <div class="modal-actions" style="display: flex; gap: 0.75rem; margin-top: 1.5rem;">
+      <button class="btn-action btn-secondary" style="flex: 1; padding: 0.75rem; justify-content: center;" onclick="closeAddUserModal()">Cancel</button>
+      <button class="btn-action btn-primary" style="flex: 1; padding: 0.75rem; justify-content: center;" onclick="createUser()">Create Account</button>
+    </div>
+  </div>
+</div>
+
+<!-- CREATE COURSE MODAL -->
+<div class="modal-overlay" id="courseModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 200; align-items: center; justify-content: center;">
+  <div class="modal" style="background: var(--bg-panel); border: 1px solid var(--border-subtle); border-radius: 16px; padding: 2rem; width: calc(100% - 2rem); max-width: 480px;">
+    <h3 style="font-family: 'DM Serif Display', serif; font-size: 1.4rem; margin-bottom: 1.5rem;">Create New Course</h3>
+    <div class="field"><label>Course Title</label><input type="text" id="nc-title" placeholder="e.g., Foundational Ethics"></div>
+    <div class="field"><label>Description</label>
+      <textarea id="nc-desc" rows="3" style="width: 100%; padding: 0.75rem; background: var(--bg-surface); border: 1.5px solid var(--border-strong); border-radius: 8px; color: var(--text-main); font-family: 'Inter', sans-serif; font-size: 0.95rem; outline: none;"></textarea>
+    </div>
+    <div class="modal-actions" style="display: flex; gap: 0.75rem; margin-top: 1.5rem;">
+      <button class="btn-action btn-secondary" style="flex: 1; padding: 0.75rem; justify-content: center;" onclick="closeCourseModal()">Cancel</button>
+      <button class="btn-action btn-primary" id="btn-submit-course" style="flex: 1; padding: 0.75rem; justify-content: center;" onclick="submitNewCourse()">Save Course</button>
+    </div>
+  </div>
+</div>
+
+<!-- CREATE MILESTONE MODAL -->
+<div class="modal-overlay" id="milestoneModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 200; align-items: center; justify-content: center;">
+  <div class="modal" style="background: var(--bg-panel); border: 1px solid var(--border-subtle); border-radius: 16px; padding: 2rem; width: calc(100% - 2rem); max-width: 600px; max-height: 90vh; overflow-y: auto;">
+    <h3 style="font-family: 'DM Serif Display', serif; font-size: 1.4rem; margin-bottom: 0.5rem;">Add Milestone</h3>
+    <p style="color:var(--text-dim);font-size:0.85rem;margin-bottom:1.5rem;">For course: <strong id="nm-course-title"></strong></p>
+    
+    <div class="field"><label>Title</label><input type="text" id="nm-title" placeholder="e.g., Module 1: Introduction"></div>
+    <div class="field"><label>Short Description</label><input type="text" id="nm-desc" placeholder="Brief summary of this milestone"></div>
+    <div class="field"><label>Content (HTML tags allowed)</label>
+      <textarea id="nm-content" rows="4" style="width: 100%; padding: 0.75rem; background: var(--bg-surface); border: 1.5px solid var(--border-strong); border-radius: 8px; color: var(--text-main); font-family: 'Inter', sans-serif; font-size: 0.95rem; outline: none;"></textarea>
+    </div>
+    <div class="field"><label>Video URL (Optional - YouTube/Vimeo/MP4)</label><input type="text" id="nm-video" placeholder="https://..."></div>
+    <div class="field"><label>Submission Type</label>
+      <select id="nm-type" onchange="handleSubTypeChange()">
+        <option value="CHECKBOX">Checkbox (Read & Confirm)</option>
+        <option value="WRITTEN">Written Response (Requires Admin Approval)</option>
+        <option value="QUIZ">Quiz Assessment (Auto-graded)</option>
+      </select>
+    </div>
+    
+    <div id="nm-quiz-wrap" style="display:none; padding:1rem; background:var(--bg-surface); border-radius:8px; margin-bottom:1rem; border: 1px solid var(--border-strong);">
+       <div class="field"><label>Passing Score (%)</label><input type="number" id="nm-pass" placeholder="70" value="70"></div>
+       <div class="field"><label>Quiz JSON Data Format</label>
+         <textarea id="nm-quiz" rows="4" style="width: 100%; padding: 0.75rem; background: var(--bg-main); border: 1.5px solid var(--border-strong); border-radius: 8px; font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; outline: none;" placeholder='{"questions": [{"id":"q1", "text":"Sample?", "options":["A","B"], "correct":0}]}'></textarea>
+       </div>
+    </div>
+
+    <div class="modal-actions" style="display: flex; gap: 0.75rem; margin-top: 1.5rem;">
+      <button class="btn-action btn-secondary" style="flex: 1; padding: 0.75rem; justify-content: center;" onclick="closeMilestoneModal()">Cancel</button>
+      <button class="btn-action btn-primary" id="btn-submit-milestone" style="flex: 1; padding: 0.75rem; justify-content: center;" onclick="submitNewMilestone()">Add Milestone</button>
+    </div>
+  </div>
+</div>
+
+<!-- ASSIGN COURSE MODAL -->
+<div class="modal-overlay" id="assignModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 200; align-items: center; justify-content: center;">
+  <div class="modal" style="background: var(--bg-panel); border: 1px solid var(--border-subtle); border-radius: 16px; padding: 2rem; width: calc(100% - 2rem); max-width: 400px;">
+    <h3 style="font-family: 'DM Serif Display', serif; font-size: 1.4rem; margin-bottom: 0.5rem;">Assign Course</h3>
+    <p style="color:var(--text-dim);font-size:0.85rem;margin-bottom:1.5rem;">Assigning to: <strong id="assign-user-name"></strong></p>
+    <div class="field"><label>Select Course</label>
+      <select id="assign-course-select">
+        <option value="">— Select course —</option>
+      </select>
+    </div>
+    <div class="modal-actions" style="display: flex; gap: 0.75rem; margin-top: 1.5rem;">
+      <button class="btn-action btn-secondary" style="flex: 1; padding: 0.75rem; justify-content: center;" onclick="closeAssignModal()">Cancel</button>
+      <button class="btn-action btn-primary" id="btn-submit-assign" style="flex: 1; padding: 0.75rem; justify-content: center;" onclick="submitAssignCourse()">Assign</button>
+    </div>
+  </div>
+</div>
+
+<!-- MEMBER DETAIL MODAL -->
+<div class="modal-overlay" id="memberDetailModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 200; align-items: center; justify-content: center;">
+  <div class="modal" style="background: var(--bg-panel); border: 1px solid var(--border-subtle); border-radius: 16px; padding: 2rem; width: calc(100% - 2rem); max-width: 560px; max-height: 85vh; overflow-y: auto;">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:1.5rem;">
+      <div>
+        <h3 style="font-family: 'DM Serif Display', serif; font-size: 1.4rem; margin-bottom: 2px;" id="md-name">Member</h3>
+        <div style="font-size:.78rem;color:var(--text-dim);font-family:'JetBrains Mono',monospace;" id="md-username">—</div>
+      </div>
+      <button onclick="closeMemberDetailModal()" style="background:none;border:none;color:var(--text-dim);font-size:1.3rem;cursor:pointer;line-height:1;padding:.25rem;">✕</button>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;background:var(--bg-surface);border-radius:10px;padding:1rem 1.25rem;margin-bottom:1.5rem;">
+      <div>
+        <div style="font-size:.7rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px;">Email</div>
+        <div style="font-size:.85rem;color:var(--text-main);" id="md-email">—</div>
+      </div>
+      <div>
+        <div style="font-size:.7rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px;">Phone</div>
+        <div style="font-size:.85rem;color:var(--text-main);" id="md-phone">—</div>
+      </div>
+      <div style="grid-column: 1 / -1;">
+        <div style="font-size:.7rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px;">Course(s) Running</div>
+        <div style="font-size:.85rem;color:var(--text-main);" id="md-courses">—</div>
+      </div>
+    </div>
+
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.6rem;">
+      <span style="font-size:.8rem;color:var(--text-dim);">Overall Completion</span>
+      <strong style="color:var(--gold-lt);font-size:.9rem;" id="md-rate">0%</strong>
+    </div>
+    <div style="height:6px;background:var(--border-subtle);border-radius:3px;overflow:hidden;margin-bottom:1.5rem;">
+      <div id="md-rate-bar" style="height:100%;background:linear-gradient(90deg,var(--gold),var(--gold-lt));border-radius:3px;transition:width .4s ease;width:0%;"></div>
+    </div>
+
+    <div style="font-size:.72rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.07em;margin-bottom:.75rem;">Milestones</div>
+    <div id="md-milestones"></div>
+  </div>
+</div>
+
+<script src="main.js"></script>
+</body>
+</html>
