@@ -1623,7 +1623,7 @@ function createYTTracker(mid) {
           const p = ytPlayers[mid];
           if (!p || typeof p.getCurrentTime !== "function") return;
           const t = p.getCurrentTime(); const dur = p.getDuration ? p.getDuration() : 0;
-          if (t > maxTime) maxTime = t;
+          if (t > maxTime + 1.5) p.seekTo(maxTime, true); else if (t > maxTime) maxTime = t;
           updateVideoUI(mid, maxTime, dur, p.getPlayerState && p.getPlayerState() === 1);
         }, 500);
       },
@@ -1641,7 +1641,7 @@ function createVimeoTracker(mid) {
   player.on("timeupdate", data => { if (data.seconds > maxTime) maxTime = data.seconds; updateVideoUI(mid, maxTime, duration || data.duration, true); });
   player.on("play", () => updateVideoUI(mid, maxTime, duration, true));
   player.on("pause", () => updateVideoUI(mid, maxTime, duration, false));
-  // player.on("seeked", data => { if (data.seconds > maxTime + 1.5) player.setCurrentTime(maxTime); });
+  player.on("seeked", data => { if (data.seconds > maxTime + 1.5) player.setCurrentTime(maxTime); });
   player.on("ended", () => markVideoWatched(mid));
 }
 
@@ -1652,7 +1652,7 @@ function createNativeTracker(mid) {
   el.addEventListener("timeupdate", () => { if (el.currentTime > maxTime) maxTime = el.currentTime; updateVideoUI(mid, maxTime, el.duration, !el.paused); });
   el.addEventListener("play", () => updateVideoUI(mid, maxTime, el.duration, true));
   el.addEventListener("pause", () => updateVideoUI(mid, maxTime, el.duration, false));
-  // el.addEventListener("seeking", () => { if (el.currentTime > maxTime + 1.5) el.currentTime = maxTime; });
+  el.addEventListener("seeking", () => { if (el.currentTime > maxTime + 1.5) el.currentTime = maxTime; });
   el.addEventListener("ended", () => markVideoWatched(mid));
 }
 
