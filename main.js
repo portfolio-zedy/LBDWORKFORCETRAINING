@@ -1623,7 +1623,7 @@ function createYTTracker(mid) {
           const p = ytPlayers[mid];
           if (!p || typeof p.getCurrentTime !== "function") return;
           const t = p.getCurrentTime(); const dur = p.getDuration ? p.getDuration() : 0;
-          if (t > maxTime + 1.5) p.seekTo(maxTime, true); else if (t > maxTime) maxTime = t;
+          if (t > maxTime) maxTime = t;
           updateVideoUI(mid, maxTime, dur, p.getPlayerState && p.getPlayerState() === 1);
         }, 500);
       },
