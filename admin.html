@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard — Living By Design Nation</title>
+  <link rel="icon" type="image/png" href="bck.png">
+  <link rel="apple-touch-icon" href="bck.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="page-loader" id="pageLoader">
+  <div class="page-loader-mark"></div>
+  <div class="page-loader-text">Loading your dashboard…</div>
+</div>
+<button class="mobile-menu-btn" id="mobileMenuBtn" onclick="toggleMobileSidebar()" aria-label="Toggle menu">☰</button>
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeMobileSidebar()"></div>
+<div class="app">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="brand">
+        <div class="brand-icon"><img src="bck.png" alt="Living By Design Nation"></div>
+        <div>
+          <div class="brand-name">Living By Design Nation</div>
+          <div class="brand-sub">Admin Panel</div>
+        </div>
+      </div>
+      <div class="user-info">
+        <div class="user-name" id="sidebarName">Loading…</div>
+        <div class="user-role" id="sidebarRole">—</div>
+      </div>
+    </div>
+    <nav class="nav">
+      <div class="nav-section-label">Overview</div>
+      <button class="nav-item active" data-call="switchView" data-view="overview">📊 <span>Overview</span></button>
+
+      <div class="nav-section-label">Review &amp; Content</div>
+      <button class="nav-item" data-call="switchView" data-view="pending" id="nav-pending">
+        ⏳ <span>Pending Reviews</span> <span class="nav-badge" id="pendingBadge" style="display:none">0</span>
+      </button>
+      <button class="nav-item" data-call="switchView" data-view="graduations" id="nav-graduations">
+        🏆 <span>Graduation Approvals</span> <span class="nav-badge" id="graduationBadge" style="display:none">0</span>
+      </button>
+      <button class="nav-item" data-call="switchView" data-view="courses" id="nav-courses">
+        📚 <span>Manage Courses</span>
+      </button>
+      <button class="nav-item" data-call="switchView" data-view="projects" id="nav-projects">
+        📝 <span>Projects &amp; Broadcasts</span>
+      </button>
+
+      <div class="nav-section-label">People</div>
+      <button class="nav-item" data-call="switchView" data-view="learners">👥 <span>Member Progress</span></button>
+      <button class="nav-item" data-call="switchView" data-view="users" id="nav-users">
+        👤 <span>Manage Users</span> <span class="nav-badge" id="newUsersBadge" style="display:none">0</span>
+      </button>
+      <button class="nav-item" data-call="switchView" data-view="completed" id="nav-completed">
+        🏅 <span>Members Completed</span>
+      </button>
+      <button class="nav-item" data-call="switchView" data-view="facilitators" id="nav-facilitators">
+        🎓 <span>Facilitator Requests</span> <span class="nav-badge" id="facilitatorBadge" style="display:none">0</span>
+      </button>
+    </nav>
+    <div class="sidebar-footer">
+      <button class="btn-logout" onclick="logout()">Sign Out</button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+    <div class="topbar">
+      <div>
+        <div class="topbar-title" id="topbarTitle">Overview</div>
+        <div class="topbar-sub" id="topbarSub">Platform at a glance</div>
+      </div>
+      <div class="topbar-actions">
+        <span class="sync-status" id="lastSynced"><span class="sync-dot"></span><span class="sync-label">Live</span></span>
+        <button class="bell-btn" data-call="openAdminNotifications" aria-label="Notifications">🔔<i class="bell-badge" id="adminBellBadge" style="display:none"></i></button>
+        <button class="btn-refresh" id="refreshBtn" onclick="pollUpdates()" aria-label="Refresh data">
+          <span class="refresh-icon">↻</span> Refresh
+        </button>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- VIEW: OVERVIEW -->
+      <div class="view active" id="view-overview">
+        <div class="stat-wrap">
+        <div class="stat-grid" id="statGrid">
+          <div class="kpi-card"><div class="skeleton" style="width:48px;height:48px;border-radius:12px;flex-shrink:0;"></div><div style="flex:1;min-width:0;"><div class="skeleton" style="width:3rem;height:1.6rem;margin-bottom:6px;"></div><div class="skeleton" style="width:70%;height:.7rem;"></div></div></div>
+          <div class="kpi-card"><div class="skeleton" style="width:48px;height:48px;border-radius:12px;flex-shrink:0;"></div><div style="flex:1;min-width:0;"><div class="skeleton" style="width:3rem;height:1.6rem;margin-bottom:6px;"></div><div class="skeleton" style="width:70%;height:.7rem;"></div></div></div>
+          <div class="kpi-card"><div class="skeleton" style="width:48px;height:48px;border-radius:12px;flex-shrink:0;"></div><div style="flex:1;min-width:0;"><div class="skeleton" style="width:3rem;height:1.6rem;margin-bottom:6px;"></div><div class="skeleton" style="width:70%;height:.7rem;"></div></div></div>
+          <div class="kpi-card"><div class="skeleton" style="width:48px;height:48px;border-radius:12px;flex-shrink:0;"></div><div style="flex:1;min-width:0;"><div class="skeleton" style="width:3rem;height:1.6rem;margin-bottom:6px;"></div><div class="skeleton" style="width:70%;height:.7rem;"></div></div></div>
+          <div class="kpi-card"><div class="skeleton" style="width:48px;height:48px;border-radius:12px;flex-shrink:0;"></div><div style="flex:1;min-width:0;"><div class="skeleton" style="width:3rem;height:1.6rem;margin-bottom:6px;"></div><div class="skeleton" style="width:70%;height:.7rem;"></div></div></div>
+        </div>
+        </div>
+
+        <!-- Opens when a stat card above is tapped -->
+        <div class="table-wrap" id="statDetail" style="display:none;margin-bottom:1.5rem">
+          <div class="table-header">
+            <div><h3 id="statDetailTitle"></h3><p id="statDetailSub"></p></div>
+            <button class="chip-btn chip-btn--steel" data-call="closeStatDetail">✕ Close</button>
+          </div>
+          <div style="overflow-x:auto">
+            <table>
+              <thead><tr><th>Member</th><th>Username</th><th>Email</th><th>Phone</th><th>Batch</th><th id="statDetailExtraHead">Progress</th></tr></thead>
+              <tbody id="statDetailBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- VIEW: PENDING REVIEWS -->
+      <div class="view" id="view-pending">
+        <div class="table-wrap">
+          <div class="table-header">
+            <div><h3>Written Submissions — Pending Review</h3><p>Approve or reject member written responses to unlock their next milestone</p></div>
+          </div>
+          <div style="overflow-x:auto">
+            <table id="pendingTable">
+              <thead><tr>
+                <th>Member</th><th>Milestone</th><th>Submitted</th><th>Response Preview</th><th>Action</th>
+              </tr></thead>
+              <tbody id="pendingBody">
+                <tr><td colspan="5" style="padding:2rem;text-align:center;color:var(--text-dim)">Loading…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- VIEW: GRADUATION APPROVALS -->
+      <div class="view" id="view-graduations">
+        <div class="table-wrap" style="margin-bottom: 1.5rem;">
+          <div class="table-header">
+            <div><h3>Awaiting Facilitator Approval</h3><p>Sign off on graduating members' chosen service assignment</p></div>
+          </div>
+          <div style="overflow-x:auto">
+            <table>
+              <thead><tr><th>Member</th><th>Username</th><th>Service Choice</th><th>Requested</th><th>Action</th></tr></thead>
+              <tbody id="gradFacilitatorBody">
+                <tr><td colspan="5" style="padding:2rem;text-align:center;color:var(--text-dim)">Loading…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="table-wrap" id="adminApprovalSection">
+          <div class="table-header">
+            <div><h3>Awaiting Admin Approval</h3><p>Final sign-off before a member is marked as graduated</p></div>
+          </div>
+          <div style="overflow-x:auto">
+            <table>
+              <thead><tr><th>Member</th><th>Username</th><th>Service Choice</th><th>Requested</th><th>Action</th></tr></thead>
+              <tbody id="gradAdminBody">
+                <tr><td colspan="5" style="padding:2rem;text-align:center;color:var(--text-dim)">Loading…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- VIEW: COURSES -->
+      <div class="view" id="view-courses">
+        <div class="table-wrap">
+          <div class="table-header">
+            <div><h3>Course Library</h3><p>Create and structure learning pathways</p></div>
+            <button class="btn-action btn-primary" style="padding: 0.55rem 1.1rem; font-size: 0.82rem;" onclick="openCourseModal()">+ New Course</button>
+          </div>
+          <div style="overflow-x:auto">
+            <table>
+              <thead><tr><th>Course Title</th><th>Description</th><th>Course ID</th><th>Milestones</th><th>Action</th></tr></thead>
+              <tbody id="adminCoursesBody">
+                <tr><td colspan="5" style="padding:2rem;text-align:center;color:var(--text-dim)">Loading…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- VIEW: PROJECTS & BROADCASTS -->
+      <div class="view" id="view-projects">
+        <div class="stat-grid" id="projStatsRow" style="grid-template-columns:repeat(3,1fr)">
+          <div class="kpi-card"><div class="kpi-icon kpi-icon--gold">📝</div><div class="kpi-body"><div class="kpi-num">—</div><div class="kpi-label">Assigned</div></div></div>
+          <div class="kpi-card"><div class="kpi-icon kpi-icon--warning">⏳</div><div class="kpi-body"><div class="kpi-num">—</div><div class="kpi-label">Awaiting grade</div></div></div>
+          <div class="kpi-card"><div class="kpi-icon kpi-icon--success">✅</div><div class="kpi-body"><div class="kpi-num">—</div><div class="kpi-label">Graded</div></div></div>
+        </div>
+
+        <div class="table-wrap" style="margin-bottom:1.5rem">
+          <div class="table-header">
+            <div><h3>Question Bank</h3><p>Each learner is dealt ONE question at random when you press Assign</p></div>
+            <button class="btn-action btn-primary" id="btn-assign-projects" style="padding: 0.55rem 1.1rem; font-size: 0.82rem;" data-call="assignProjects">🎯 Assign Projects</button>
+          </div>
+          <div style="padding:1.25rem 1.5rem">
+            <div id="pqList" style="margin-bottom:1rem"><p style="color:var(--text-dim);font-size:.85rem">Loading…</p></div>
+            <div style="display:flex;gap:.6rem;flex-wrap:wrap">
+              <input type="text" id="pq-input" placeholder="Type a new essay question…" style="flex:1;min-width:220px;padding:.75rem 1rem;background:var(--bg-surface);border:1.5px solid var(--border-strong);border-radius:8px;color:var(--text-main);font-size:16px;outline:none;">
+              <button class="btn-action btn-secondary" style="padding:.6rem 1.1rem;font-size:.82rem;" onclick="addProjectQuestion()">+ Add Question</button>
+            </div>
+          </div>
+        </div>
+
+        <div id="batchCard">
+        <div class="table-wrap" style="margin-bottom:1.5rem">
+          <div class="table-header">
+            <div><h3>Training Batch Timeframe</h3><p>Learners see these dates on their home screen</p></div>
+          </div>
+          <div style="padding:1.25rem 1.5rem">
+            <p id="batch-status" style="font-size:.8rem;color:var(--text-dim);margin-bottom:1rem;">No batch set yet.</p>
+            <div class="field"><label>Batch name</label>
+              <input type="text" id="batch-name" maxlength="80" placeholder="e.g. Batch 3 — January 2027" style="width:100%;padding:.7rem 1rem;background:var(--bg-surface);border:1.5px solid var(--border-strong);border-radius:8px;color:var(--text-main);font-size:16px;outline:none;">
+            </div>
+            <div style="display:flex;gap:.75rem;flex-wrap:wrap">
+              <div class="field" style="flex:1;min-width:160px"><label>Start date</label><input type="date" id="batch-start" style="width:100%;padding:.7rem 1rem;background:var(--bg-surface);border:1.5px solid var(--border-strong);border-radius:8px;color:var(--text-main);font-size:16px;outline:none;"></div>
+              <div class="field" style="flex:1;min-width:160px"><label>End date</label><input type="date" id="batch-end" style="width:100%;padding:.7rem 1rem;background:var(--bg-surface);border:1.5px solid var(--border-strong);border-radius:8px;color:var(--text-main);font-size:16px;outline:none;"></div>
+            </div>
+            <div class="field"><label>Note shown to learners (optional)</label>
+              <input type="text" id="batch-note" maxlength="300" placeholder="e.g. Classes hold every Saturday, 10am WAT" style="width:100%;padding:.7rem 1rem;background:var(--bg-surface);border:1.5px solid var(--border-strong);border-radius:8px;color:var(--text-main);font-size:16px;outline:none;">
+            </div>
+            <label style="display:flex;align-items:center;gap:.5rem;font-size:.85rem;color:var(--text-muted);margin:.25rem 0 .5rem;">
+              <input type="checkbox" id="batch-notify" checked> Notify the learners in this batch
+            </label>
+            <label style="display:flex;align-items:center;gap:.5rem;font-size:.85rem;color:var(--text-muted);margin:0 0 1rem;">
+              <input type="checkbox" id="batch-carry"> When opening a <strong>new</strong> batch, carry over learners from the current one
+            </label>
+            <div style="display:flex;gap:.6rem;flex-wrap:wrap;margin-bottom:1rem">
+              <button class="btn-action btn-primary" id="btn-save-batch" style="padding:.7rem 1.1rem;font-size:.82rem;" onclick="saveBatch('update')">💾 Save changes to current batch</button>
+              <button class="btn-action btn-secondary" id="btn-new-batch" style="padding:.7rem 1.1rem;font-size:.82rem;" onclick="saveBatch('new')">➕ Open as a new batch</button>
+            </div>
+            <p style="font-size:.78rem;color:var(--text-dim);line-height:1.6;">
+              Learners can use the portal only between their batch's start and end dates. Once a batch ends, everyone in it is locked out until you open a new batch.
+              <strong>Save changes</strong> edits the running batch (nobody loses access). <strong>Open as a new batch</strong> closes the old one: learners with no batch yet join the new one automatically;
+              tick <em>carry over</em> to bring the old batch's learners along, or move people one at a time from Manage Members.
+            </p>
+          </div>
+        </div>
+        <div class="table-wrap" style="margin-bottom:1.5rem">
+          <div class="table-header"><div><h3>Previous Batches</h3><p>Each closed batch is kept as its own section — tap one to see its learners</p></div></div>
+          <div id="batchHistory" style="padding:1rem 1.5rem"><p style="color:var(--text-dim);font-size:.85rem">Loading…</p></div>
+        </div>
+        </div>
+
+        <div class="table-wrap" style="margin-bottom:1.5rem">
+          <div class="table-header">
+            <div><h3>Defence Date</h3><p>Saving broadcasts the date to every learner's portal automatically</p></div>
+          </div>
+          <div style="padding:1.25rem 1.5rem">
+            <p id="pd-status" style="font-size:.8rem;color:var(--text-dim);margin-bottom:1rem;">No defence date set yet.</p>
+            <div style="display:flex;gap:.75rem;flex-wrap:wrap;align-items:flex-end">
+              <div class="field" style="margin:0"><label>Date</label><input type="date" id="pd-date" style="padding:.7rem 1rem;background:var(--bg-surface);border:1.5px solid var(--border-strong);border-radius:8px;color:var(--text-main);font-size:16px;outline:none;"></div>
+              <div class="field" style="margin:0;flex:1;min-width:180px"><label>Venue (optional)</label><input type="text" id="pd-venue" placeholder="e.g. Main Hall, Zoom" style="width:100%;padding:.7rem 1rem;background:var(--bg-surface);border:1.5px solid var(--border-strong);border-radius:8px;color:var(--text-main);font-size:16px;outline:none;"></div>
+              <button class="btn-action btn-primary" id="btn-save-defence" style="padding:.7rem 1.1rem;font-size:.82rem;" onclick="saveDefenceDate()">Save &amp; Notify All</button>
+            </div>
+            <div class="field" style="margin-top:1rem"><label>Note shown with the announcement (optional)</label>
+              <input type="text" id="pd-msg" placeholder="e.g. Come with a printed copy of your essay" style="width:100%;padding:.7rem 1rem;background:var(--bg-surface);border:1.5px solid var(--border-strong);border-radius:8px;color:var(--text-main);font-size:16px;outline:none;">
+            </div>
+          </div>
+        </div>
+
+        <div class="table-wrap" style="margin-bottom:1.5rem">
+          <div class="table-header">
+            <div><h3>Project Submissions</h3><p id="projSubCount">Loading…</p></div>
+          </div>
+          <div style="overflow-x:auto">
+            <table>
+              <thead><tr><th>Member</th><th>Question</th><th>Status</th><th>Submitted</th><th>Score</th><th>Action</th></tr></thead>
+              <tbody id="projectSubsBody">
+                <tr><td colspan="6" style="padding:2rem;text-align:center;color:var(--text-dim)">Loading…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <div class="table-header">
+            <div><h3>Broadcast Notification</h3><p>Push an announcement to every member's portal</p></div>
+          </div>
+          <div style="padding:1.25rem 1.5rem">
+            <div style="display:flex;gap:.75rem;flex-wrap:wrap">
+              <div class="field" style="margin:0">
+                <label>Audience</label>
+                <select id="bc-audience" onchange="toggleBroadcastCourseRow()" style="padding:.7rem 1rem;background:var(--bg-surface);border:1.5px solid var(--border-strong);border-radius:8px;color:var(--text-main);font-size:16px;outline:none;">
+                  <option value="ALL_LEARNERS">All learners</option>
+                  <option value="COURSE">One course</option>
+                  <option value="ALL_USERS">Everyone (incl. staff)</option>
+                </select>
+              </div>
+              <div class="field" id="bc-course-row" style="margin:0;display:none">
+                <label>Course</label>
+                <select id="bc-course" style="padding:.7rem 1rem;background:var(--bg-surface);border:1.5px solid var(--border-strong);border-radius:8px;color:var(--text-main);font-size:16px;outline:none;">
+                  <option value="">— Select course —</option>
+                </select>
+              </div>
+            </div>
+            <div class="field" style="margin-top:1rem"><label>Title</label>
+              <input type="text" id="bc-title" placeholder="e.g. Module 5 videos are live" style="width:100%;padding:.7rem 1rem;background:var(--bg-surface);border:1.5px solid var(--border-strong);border-radius:8px;color:var(--text-main);font-size:16px;outline:none;">
+            </div>
+            <div class="field"><label>Message</label>
+              <textarea id="bc-body" rows="3" placeholder="Write the announcement…" style="width:100%;padding:.75rem 1rem;background:var(--bg-surface);border:1.5px solid var(--border-strong);border-radius:8px;color:var(--text-main);font-family:'Inter',sans-serif;font-size:16px;outline:none;"></textarea>
+            </div>
+            <button class="btn-action btn-primary" id="btn-send-broadcast" style="padding:.7rem 1.1rem;font-size:.82rem;" onclick="broadcastNotice()">📣 Send Broadcast</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- VIEW: LEARNER PROGRESS CARDS -->
+      <div class="view" id="view-learners">
+        <div style="margin-bottom:1.5rem;display:flex;align-items:center;gap:.75rem">
+          <input type="text" class="filter-input" style="max-width:320px" placeholder="Search member…" oninput="filterLearnerCards(this.value)">
+          <select class="filter-input" id="learnerBatchFilter" style="max-width:240px" onchange="setLearnerBatchFilter(this.value)"><option value="">All batches</option></select>
+        </div>
+        <div class="learner-grid" id="learnerGrid">
+          <div class="skeleton" style="height:160px;border-radius:14px;"></div>
+          <div class="skeleton" style="height:160px;border-radius:14px;"></div>
+          <div class="skeleton" style="height:160px;border-radius:14px;"></div>
+        </div>
+      </div>
+
+      <!-- VIEW: USERS -->
+      <div class="view" id="view-users">
+        <div class="table-wrap">
+          <div class="table-header">
+            <div><h3>Manage Members</h3><p id="usersViewSub">Add new members or view existing accounts</p></div>
+            <button class="btn-action btn-primary" id="addMemberBtn" style="padding: 0.55rem 1.1rem; font-size: 0.82rem;" onclick="openAddUserModal()">+ Add Member</button>
+          </div>
+          <div style="overflow-x:auto">
+            <table>
+              <thead><tr><th>Name</th><th>Username</th><th>Email</th><th>Enrolled In</th><th>Action</th></tr></thead>
+              <tbody id="usersBody">
+                <tr><td colspan="5" style="padding:2rem;text-align:center;color:var(--text-dim)">Loading…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- VIEW: MEMBERS COMPLETED -->
+      <div class="view" id="view-completed">
+        <div class="table-wrap">
+          <div class="table-header">
+            <div><h3>Members Completed</h3><p>Fully graduated members — approved by both facilitator and admin</p></div>
+          </div>
+          <div style="overflow-x:auto">
+            <table>
+              <thead><tr><th>Name</th><th>Username</th><th>Service Assignment</th><th>Graduated</th></tr></thead>
+              <tbody id="completedBody">
+                <tr><td colspan="4" style="padding:2rem;text-align:center;color:var(--text-dim)">Loading…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- VIEW: FACILITATOR REQUESTS -->
+      <div class="view" id="view-facilitators">
+        <div class="table-wrap" style="margin-bottom: 1.5rem;">
+          <div class="table-header">
+            <div><h3>Facilitator Clearance Requests</h3><p>Approve leadership accounts before they can sign in</p></div>
+          </div>
+          <div style="overflow-x:auto">
+            <table>
+              <thead><tr><th>Name</th><th>Username</th><th>Requested</th><th>Action</th></tr></thead>
+              <tbody id="facilitatorsBody">
+                <tr><td colspan="4" style="padding:2rem;text-align:center;color:var(--text-dim)">Loading…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <div class="table-header">
+            <div><h3>Active Facilitators</h3><p>Promote a trusted facilitator to full Admin access</p></div>
+          </div>
+          <div style="overflow-x:auto">
+            <table>
+              <thead><tr><th>Name</th><th>Username</th><th>Active Since</th><th>Action</th></tr></thead>
+              <tbody id="activeTeachersBody">
+                <tr><td colspan="4" style="padding:2rem;text-align:center;color:var(--text-dim)">Loading…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+
+    <footer class="site-footer"><span class="dot">•</span>LIVING BY DESIGN NATION<span class="dot">•</span>WORKFORCE TRAINING CENTER<span class="dot">•</span><span id="footerYear"></span></footer>
+  </main>
+</div>
+
+<!-- ADD USER MODAL -->
+<div class="modal-overlay" id="addUserModal">
+  <div class="modal" style="max-width: 480px;">
+    <div class="modal-head">
+      <h3 style="font-family: 'DM Serif Display', serif; font-size: 1.4rem;">Add New Member</h3>
+      <button class="modal-close" onclick="closeAddUserModal()" aria-label="Close">✕</button>
+    </div>
+    <div class="field"><label>Full Name</label><input type="text" id="nf-name" placeholder="Jane Smith"></div>
+    <div class="field"><label>Username</label><input type="text" id="nf-username" placeholder="jane.smith"></div>
+    <div class="field"><label>Email</label><input type="email" id="nf-email" placeholder="jane@company.com"></div>
+    <div class="field"><label>Temporary Password</label><input type="password" id="nf-password" placeholder="Set a temporary password"></div>
+    <div class="field"><label>Enrol in Course</label>
+      <select id="nf-course">
+        <option value="">— Select course —</option>
+      </select>
+    </div>
+    <div class="modal-actions" style="display: flex; gap: 0.75rem; margin-top: 1.5rem;">
+      <button class="btn-action btn-secondary" style="flex: 1; padding: 0.75rem; justify-content: center;" onclick="closeAddUserModal()">Cancel</button>
+      <button class="btn-action btn-primary" style="flex: 1; padding: 0.75rem; justify-content: center;" onclick="createUser()">Create Account</button>
+    </div>
+  </div>
+</div>
+
+<!-- CREATE COURSE MODAL -->
+<div class="modal-overlay" id="courseModal">
+  <div class="modal" style="max-width: 480px;">
+    <div class="modal-head">
+      <h3 style="font-family: 'DM Serif Display', serif; font-size: 1.4rem;">Create New Course</h3>
+      <button class="modal-close" onclick="closeCourseModal()" aria-label="Close">✕</button>
+    </div>
+    <div class="field"><label>Course Title</label><input type="text" id="nc-title" placeholder="e.g., Foundational Ethics"></div>
+    <div class="field"><label>Description</label>
+      <textarea id="nc-desc" rows="3" style="width: 100%; padding: 0.75rem; background: var(--bg-surface); border: 1.5px solid var(--border-strong); border-radius: 8px; color: var(--text-main); font-family: 'Inter', sans-serif; font-size: 0.95rem; outline: none;"></textarea>
+    </div>
+    <div class="modal-actions" style="display: flex; gap: 0.75rem; margin-top: 1.5rem;">
+      <button class="btn-action btn-secondary" style="flex: 1; padding: 0.75rem; justify-content: center;" onclick="closeCourseModal()">Cancel</button>
+      <button class="btn-action btn-primary" id="btn-submit-course" style="flex: 1; padding: 0.75rem; justify-content: center;" onclick="submitNewCourse()">Save Course</button>
+    </div>
+  </div>
+</div>
+
+<!-- CREATE MILESTONE MODAL -->
+<div class="modal-overlay" id="milestoneModal">
+  <div class="modal" style="max-width: 600px; max-height: 90vh; overflow-y: auto;">
+    <div class="modal-head" style="margin-bottom:0.5rem;">
+      <h3 style="font-family: 'DM Serif Display', serif; font-size: 1.4rem;" id="milestoneModalTitle">Add Milestone</h3>
+      <button class="modal-close" onclick="closeMilestoneModal()" aria-label="Close">✕</button>
+    </div>
+    <p style="color:var(--text-dim);font-size:0.85rem;margin-bottom:1.5rem;">For course: <strong id="nm-course-title"></strong></p>
+    
+    <div class="field"><label>Title</label><input type="text" id="nm-title" placeholder="e.g., Module 1: Introduction"></div>
+    <div class="field"><label>Short Description</label><input type="text" id="nm-desc" placeholder="Brief summary of this milestone"></div>
+    <div class="field"><label>Content (HTML tags allowed)</label>
+      <textarea id="nm-content" rows="4" style="width: 100%; padding: 0.75rem; background: var(--bg-surface); border: 1.5px solid var(--border-strong); border-radius: 8px; color: var(--text-main); font-family: 'Inter', sans-serif; font-size: 0.95rem; outline: none;"></textarea>
+    </div>
+    <div class="field" id="nm-videos-field"><label>Video URLs — one per line, they play back-to-back (YouTube / Vimeo / MP4)</label>
+      <textarea id="nm-videos" rows="3" placeholder="https://youtu.be/…&#10;https://vimeo.com/…&#10;https://…/part3.mp4" style="width: 100%; padding: 0.75rem; background: var(--bg-surface); border: 1.5px solid var(--border-strong); border-radius: 8px; color: var(--text-main); font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; outline: none;"></textarea>
+    </div>
+    <div class="field"><label>Legacy single video URL (optional — the playlist above takes priority)</label><input type="text" id="nm-video" placeholder="https://..."></div>
+    <div class="field"><label>Submission Type</label>
+      <select id="nm-type" onchange="handleSubTypeChange()">
+        <option value="CHECKBOX">Checkbox (Read & Confirm)</option>
+        <option value="WRITTEN">Written Response (Requires Admin Approval)</option>
+        <option value="QUIZ">Quiz Assessment (Auto-graded)</option>
+      </select>
+    </div>
+    
+    <div id="nm-quiz-wrap" style="display:none; padding:1rem; background:var(--bg-surface); border-radius:8px; margin-bottom:1rem; border: 1px solid var(--border-strong);">
+       <div class="field"><label>Passing Score (%) — leave empty for the 70% default; 0 means everyone auto-passes</label><input type="number" id="nm-pass" placeholder="70"></div>
+       <div class="field"><label>Quiz JSON Data Format</label>
+         <textarea id="nm-quiz" rows="4" style="width: 100%; padding: 0.75rem; background: var(--bg-main); border: 1.5px solid var(--border-strong); border-radius: 8px; font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; outline: none;" placeholder='{"questions": [{"id":"q1", "text":"Sample?", "options":["A","B"], "correct":0}]}'></textarea>
+       </div>
+    </div>
+
+    <div id="nm-edit-extra" style="display:none; padding:1rem; background:var(--gold-bg); border-radius:8px; margin-bottom:1rem; border: 1px solid var(--gold);">
+      <div style="display:flex; gap:1rem; flex-wrap:wrap; align-items:flex-end;">
+        <div class="field" style="margin:0"><label>Order (unlock sequence)</label><input type="number" id="nm-order" min="1" style="width:110px;padding:.6rem;background:var(--bg-main);border:1.5px solid var(--border-strong);border-radius:8px;color:var(--text-main);font-size:16px;outline:none;"></div>
+        <label style="display:flex;align-items:center;gap:.5rem;font-size:.85rem;color:var(--text-main);padding-bottom:.5rem;cursor:pointer;">
+          <input type="checkbox" id="nm-active" checked style="width:18px;height:18px;accent-color:var(--gold);cursor:pointer;">
+          Visible to learners
+        </label>
+      </div>
+      <p style="font-size:.72rem;color:var(--text-dim);margin-top:.5rem;">Editing is safe for learners mid-course — progress is tracked by milestone ID, never by content.</p>
+    </div>
+
+    <div class="modal-actions" style="display: flex; gap: 0.75rem; margin-top: 1.5rem;">
+      <button class="btn-action btn-secondary" style="flex: 1; padding: 0.75rem; justify-content: center;" onclick="closeMilestoneModal()">Cancel</button>
+      <button class="btn-action btn-primary" id="btn-submit-milestone" style="flex: 1; padding: 0.75rem; justify-content: center;" onclick="submitNewMilestone()">Add Milestone</button>
+    </div>
+  </div>
+</div>
+
+<!-- MILESTONE LIST (CURRICULUM EDITOR) MODAL -->
+<div class="modal-overlay" id="milestoneListModal">
+  <div class="modal" style="max-width: 640px; max-height: 90vh; overflow-y: auto;">
+    <div class="modal-head" style="margin-bottom:0.5rem;">
+      <div>
+        <h3 style="font-family: 'DM Serif Display', serif; font-size: 1.4rem;">Milestones</h3>
+        <p style="color:var(--text-dim);font-size:0.8rem;">Course: <strong id="mlm-course-title"></strong></p>
+      </div>
+      <button class="modal-close" onclick="closeMilestoneListModal()" aria-label="Close">✕</button>
+    </div>
+    <div id="milestoneListBody" style="margin-bottom:1rem;"></div>
+    <div class="modal-actions">
+      <button class="btn-action btn-secondary" style="flex: 1; padding: 0.75rem; justify-content: center;" onclick="closeMilestoneListModal()">Close</button>
+      <button class="btn-action btn-primary" style="flex: 1; padding: 0.75rem; justify-content: center;" data-call="openMilestoneCreate">➕ Add Milestone</button>
+    </div>
+  </div>
+</div>
+
+<!-- PROJECT REVIEW MODAL -->
+<div class="modal-overlay" id="projectReviewModal">
+  <div class="modal" style="max-width: 640px; max-height: 90vh; overflow-y: auto;">
+    <div class="modal-head" style="margin-bottom:0.5rem;">
+      <div>
+        <h3 style="font-family: 'DM Serif Display', serif; font-size: 1.4rem;">Grade Project</h3>
+        <p style="color:var(--text-dim);font-size:0.85rem;">Member: <strong id="pr-name">—</strong></p>
+      </div>
+      <button class="modal-close" onclick="closeProjectReviewModal()" aria-label="Close">✕</button>
+    </div>
+    <div style="background: var(--bg-surface); border-left: 3px solid var(--gold); border-radius: 8px; padding: 1rem 1.25rem; margin-bottom: 1rem;">
+      <div style="font-size:.7rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.4rem;">Question</div>
+      <p style="font-size:.9rem;color:var(--text-main);line-height:1.6;" id="pr-question">—</p>
+    </div>
+    <div style="background: var(--bg-main); border-radius: 8px; padding: 1rem 1.25rem; margin-bottom: 1rem; max-height: 220px; overflow-y: auto; border: 1px solid var(--border-subtle);">
+      <div style="font-size:.7rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.4rem;">Essay</div>
+      <p style="font-size:.85rem;color:var(--text-muted);line-height:1.7;white-space:pre-wrap;" id="pr-essay">—</p>
+    </div>
+    <div id="pr-link-row" style="display:none;margin-bottom:1rem;">
+      <div style="font-size:.7rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.4rem;">Attached document</div>
+      <a href="#" target="_blank" rel="noopener" id="pr-link" style="color:var(--gold-lt);font-size:.85rem;word-break:break-all;">—</a>
+    </div>
+    <div style="display:flex;gap:1rem;flex-wrap:wrap;align-items:flex-end;">
+      <div class="field" style="margin:0"><label>Score (0–100)</label><input type="number" id="pr-score" min="0" max="100" style="width:120px;padding:.7rem;background:var(--bg-surface);border:1.5px solid var(--border-strong);border-radius:8px;color:var(--text-main);font-size:16px;outline:none;"></div>
+      <div class="field" style="margin:0;flex:1;min-width:200px"><label>Feedback (shown to the learner)</label>
+        <textarea id="pr-feedback" rows="2" placeholder="What they did well, what to sharpen…" style="width:100%;padding:.75rem 1rem;background:var(--bg-surface);border:1.5px solid var(--border-strong);border-radius:8px;color:var(--text-main);font-family:'Inter',sans-serif;font-size:16px;outline:none;"></textarea>
+      </div>
+    </div>
+    <div class="modal-actions" style="display: flex; gap: 0.75rem; margin-top: 1.5rem;">
+      <button class="btn-action btn-secondary" style="flex: 1; padding: 0.75rem; justify-content: center;" onclick="closeProjectReviewModal()">Cancel</button>
+      <button class="btn-action btn-primary" id="btn-grade-submit" style="flex: 1; padding: 0.75rem; justify-content: center;" onclick="submitProjectGrade()">Save Grade &amp; Notify</button>
+    </div>
+  </div>
+</div>
+
+<!-- ASSIGN COURSE MODAL -->
+<div class="modal-overlay" id="assignModal">
+  <div class="modal" style="max-width: 400px;">
+    <div class="modal-head" style="margin-bottom:0.5rem;">
+      <h3 style="font-family: 'DM Serif Display', serif; font-size: 1.4rem;">Assign Course</h3>
+      <button class="modal-close" onclick="closeAssignModal()" aria-label="Close">✕</button>
+    </div>
+    <p style="color:var(--text-dim);font-size:0.85rem;margin-bottom:1.5rem;">Assigning to: <strong id="assign-user-name"></strong></p>
+    <div class="field"><label>Select Course</label>
+      <select id="assign-course-select">
+        <option value="">— Select course —</option>
+      </select>
+    </div>
+    <div class="modal-actions" style="display: flex; gap: 0.75rem; margin-top: 1.5rem;">
+      <button class="btn-action btn-secondary" style="flex: 1; padding: 0.75rem; justify-content: center;" onclick="closeAssignModal()">Cancel</button>
+      <button class="btn-action btn-primary" id="btn-submit-assign" style="flex: 1; padding: 0.75rem; justify-content: center;" onclick="submitAssignCourse()">Assign</button>
+    </div>
+  </div>
+</div>
+
+<!-- MEMBER DETAIL MODAL -->
+<div class="modal-overlay" id="memberDetailModal">
+  <div class="modal" style="max-width: 560px; max-height: 85vh; overflow-y: auto;">
+    <div class="modal-head">
+      <div>
+        <h3 style="font-family: 'DM Serif Display', serif; font-size: 1.4rem; margin-bottom: 2px;" id="md-name">Member</h3>
+        <div style="font-size:.78rem;color:var(--text-dim);font-family:'JetBrains Mono',monospace;" id="md-username">—</div>
+      </div>
+      <button class="modal-close" onclick="closeMemberDetailModal()" aria-label="Close">✕</button>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;background:var(--bg-surface);border-radius:10px;padding:1rem 1.25rem;margin-bottom:1.5rem;">
+      <div>
+        <div style="font-size:.7rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px;">Email</div>
+        <div style="font-size:.85rem;color:var(--text-main);" id="md-email">—</div>
+      </div>
+      <div>
+        <div style="font-size:.7rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px;">Phone</div>
+        <div style="font-size:.85rem;color:var(--text-main);" id="md-phone">—</div>
+      </div>
+      <div style="grid-column: 1 / -1;">
+        <div style="font-size:.7rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px;">Course(s) Running</div>
+        <div style="font-size:.85rem;color:var(--text-main);" id="md-courses">—</div>
+      </div>
+    </div>
+
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.6rem;">
+      <span style="font-size:.8rem;color:var(--text-dim);">Overall Completion</span>
+      <strong style="color:var(--gold-lt);font-size:.9rem;" id="md-rate">0%</strong>
+    </div>
+    <div style="height:6px;background:var(--border-subtle);border-radius:3px;overflow:hidden;margin-bottom:1.5rem;">
+      <div id="md-rate-bar" style="height:100%;background:linear-gradient(90deg,var(--gold),var(--gold-lt));border-radius:3px;transition:width .4s ease;width:0%;"></div>
+    </div>
+
+    <div style="font-size:.72rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.07em;margin-bottom:.75rem;">Milestones</div>
+    <div id="md-milestones"></div>
+  </div>
+</div>
+
+<!-- ADMIN NOTIFICATIONS MODAL -->
+<div class="modal-overlay" id="adminNotifModal">
+  <div class="modal" style="max-width: 480px; max-height: 85vh; overflow-y: auto;">
+    <div class="modal-head">
+      <h3 style="font-family: 'DM Serif Display', serif; font-size: 1.4rem;">Notifications</h3>
+      <button class="modal-close" onclick="closeAdminNotifModal()" aria-label="Close">✕</button>
+    </div>
+    <div id="adminNotifList"></div>
+  </div>
+</div>
+
+<script src="main.js"></script>
+</body>
+</html>
