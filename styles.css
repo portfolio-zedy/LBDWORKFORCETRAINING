@@ -1144,3 +1144,13 @@ input, select, textarea { font-size: 16px; }
 .cert-sig--right  { right: 70px; top: 895px; width: 250px; }
 .cert-sig--center { left: 50%; transform: translateX(-50%); top: 985px; width: 330px; }
 @media print { .cert-overlay { position: static; background: none; } .cert-toolbar { display: none; } }
+
+
+/* ── Graduation block inside the lock screen ── */
+.lock-grad { text-align: left; border-radius: 12px; padding: 1rem 1.1rem; margin-bottom: 1rem; border: 1px solid var(--border-strong); background: var(--bg-surface); }
+.lock-grad--ok   { border-color: var(--success); background: var(--success-bg); }
+.lock-grad--go   { border-color: var(--gold); background: var(--gold-bg); }
+.lock-grad-title { font-weight: 600; color: var(--text-main); font-size: .9rem; margin-bottom: .55rem; line-height: 1.4; }
+.lock-grad-text  { font-size: .82rem; color: var(--text-muted); line-height: 1.6; margin-bottom: .7rem; }
+.lock-grad-text:last-child { margin-bottom: 0; }
+.lock-grad-select { width: 100%; padding: .7rem .8rem; margin-bottom: .7rem; background: var(--bg-main); border: 1.5px solid var(--border-strong); border-radius: 8px; color: var(--text-main); font-size: 16px; }
