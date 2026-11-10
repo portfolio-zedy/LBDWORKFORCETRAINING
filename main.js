@@ -3293,6 +3293,52 @@ async function saveBatch(mode) {
 }
 
 // Learner: full-screen lock shown when the server reports the batch gate is closed.
+// Graduation / certificate block shown inside the lock screen.
+function lockGraduationHtml(lock) {
+  const gr = lock.graduation;
+  const box = (tone, inner) => `<div class="lock-grad lock-grad--${tone}">${inner}</div>`;
+  if (!gr) return "";
+  if (gr.status === "APPROVED") {
+    return box("ok", `<div class="lock-grad-title">🎓 Congratulations — your graduation is approved</div>
+      <button class="btn-action btn-primary" style="width:100%;justify-content:center;" onclick="openCertificate({issued: window._lockCertIssued})">View &amp; Download my Certificate</button>`);
+  }
+  if (gr.status === "PENDING") {
+    const f = gr.facil === "APPROVED", a = gr.admin === "APPROVED";
+    const waiting = (!f && !a) ? "your facilitator and the admin" : (!f ? "your facilitator" : "the admin");
+    return box("wait", `<div class="lock-grad-title">⏳ Graduation awaiting approval</div>
+      <div class="lock-grad-text">Your request is submitted. Your certificate appears here as soon as ${waiting} approve${(!f && !a) ? "" : "s"} it. Tap <b>Check again</b> later.</div>`);
+  }
+  if (gr.status === "READY") {
+    return box("go", `<div class="lock-grad-title">🎓 You've finished all 10 modules and your projects</div>
+      <div class="lock-grad-text">Apply for graduation to receive your certificate.</div>
+      <select id="lockGradChoice" class="lock-grad-select">
+        ${GRADUATION_SERVICE_OPTIONS.map(o => `<option value="${escHtml(o.value)}">${escHtml(o.label)} — ${escHtml(o.desc)}</option>`).join("")}
+      </select>
+      <button class="btn-action btn-primary" id="lockGradBtn" style="width:100%;justify-content:center;" onclick="lockApplyGraduation()">Apply for Graduation</button>`);
+  }
+  if (gr.status === "PROJECTS_PENDING") {
+    return box("wait", `<div class="lock-grad-title">📝 Final projects not submitted</div>
+      <div class="lock-grad-text">You've finished the modules, but your final projects aren't submitted yet. Ask your admin to move you into the current batch so you can finish them.</div>`);
+  }
+  return box("info", `<div class="lock-grad-title">🎓 Certificate status</div>
+    <div class="lock-grad-text">Certificates are issued once all 10 modules and the final projects are completed and graduation is approved. If you're continuing, ask your admin to move you into the current batch.</div>`);
+}
+
+async function lockApplyGraduation() {
+  const sel = document.getElementById("lockGradChoice");
+  const btn = document.getElementById("lockGradBtn");
+  if (!sel) return;
+  if (btn) { btn.disabled = true; btn.textContent = "Submitting…"; }
+  const res = await apiCall("submitGraduation", { service_choice: sel.value });
+  if (res && res.success) {
+    showToast("Graduation request submitted! Check back once it's approved.", "success");
+    setTimeout(() => location.reload(), 900);
+  } else {
+    showToast((res && res.error) || "Couldn't submit — please try again.", "error");
+    if (btn) { btn.disabled = false; btn.textContent = "Apply for Graduation"; }
+  }
+}
+
 function showLockOverlay(lock) {
   lock = lock || {};
   let ov = document.getElementById("lockOverlay");
@@ -3305,7 +3351,7 @@ function showLockOverlay(lock) {
       <h2>${escHtml(lock.title || "Portal closed")}</h2>
       <p>${escHtml(lock.message || "")}</p>
       ${b ? `<div class="lock-batch"><strong>${escHtml(b.name)}</strong><span>${escHtml(fmtBatchDate(b.start_date))} → ${escHtml(fmtBatchDate(b.end_date))}</span></div>` : ""}
-      ${lock.certificate ? `<button class="btn-action btn-primary" style="width:100%;justify-content:center;margin-bottom:.75rem;" onclick="openCertificate({issued: window._lockCertIssued})">🎓 View &amp; Download my Certificate</button>` : ""}
+      ${lockGraduationHtml(lock)}
       <div class="lock-actions">
         <button class="btn-action ${lock.certificate ? "btn-secondary" : "btn-primary"}" onclick="location.reload()">Check again</button>
         <button class="btn-action btn-secondary" onclick="logout()">Sign out</button>
