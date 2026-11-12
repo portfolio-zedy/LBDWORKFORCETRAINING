@@ -309,7 +309,7 @@ async function doSignup() {
     const result = await apiCall("signup", { fname, lname, username, email, password, tribe_id, hub_id, colony, phone, start_date });
 
     if (result.success) {
-      showToast(result.emailSent ? "Account created! Your login details were emailed to you — check your inbox (or spam). You can now sign in." : "Account created successfully! You can now sign in.", "success");
+      showToast(result.emailSent ? "Account created! Your login details were emailed to you — check your inbox (or spam). You can now sign in." : "Account created successfully! We couldn't email your login details just now — please keep your username and password safe. You can now sign in.", "success");
       toggleAuthView('login');
       setLoginMode('email');
       document.getElementById("login-email").value = email;
@@ -1213,6 +1213,7 @@ function switchView(args, el) {
     users:    ["Manage Members", "Add and view member accounts"],
     completed: ["Members Completed", "Fully graduated members"],
     facilitators: ["Facilitator Requests", "Approve leadership clearance requests"],
+    submissions: ["Project Submissions", "Essays submitted by each member"],
     projects: ["Projects & Broadcasts", "Essay assignments, training batch, defence date and announcements"]
   };
   const [title, sub] = viewTitles[name] || ["", ""];
@@ -1223,6 +1224,7 @@ function switchView(args, el) {
     newUsersCount = 0; document.getElementById("newUsersBadge").style.display = "none";
   }
   // Lazy-load the essay-project workspace the first time it's opened.
+  if (name === "submissions") { if (!currentProjectAdmin) loadProjectAdmin(); else renderProjectSubmissionsView(); }
   if (name === "projects") {
     if (!currentProjectAdmin) loadProjectAdmin();
     if (user && user.role === "ADMIN") loadBatchAdmin();
@@ -1468,9 +1470,9 @@ async function loadCoursesLearner() {
 // ── Final projects: roadmap state ──
 function projectInfo() {
   const p = graduationStatus && graduationStatus.projects;
-  return p || { course_id: "", finished_module: false, total: 0, submitted: 0, done: false };
+  return p || { course_id: "", finished_module: false, total: 0, submitted: 0, done: false, waived: false };
 }
-function projectPending() { const p = projectInfo(); return p.finished_module && p.total > 0 && p.submitted < p.total; }
+function projectPending() { const p = projectInfo(); return !p.waived && p.finished_module && p.total > 0 && p.submitted < p.total; }
 
 async function refreshGraduationStatus() {
   const g = await apiCall("getGraduationStatus", {});
@@ -1526,11 +1528,11 @@ function renderCourseList() {
 
   {
     const p = projectInfo();
-    const unlocked = p.finished_module;
-    const pIcon = !unlocked ? '🔒' : (p.total > 0 && p.submitted === p.total ? '✅' : '📝');
+    const unlocked = p.finished_module && !p.waived;
+    const pIcon = p.waived ? '✅' : !unlocked ? '🔒' : (p.total > 0 && p.submitted === p.total ? '✅' : '📝');
     const attn = projectPending() ? ' attn' : '';
-    html += `<button class="course-btn ${currentView === 'project' ? 'active' : ''}${attn}" style="${unlocked ? 'border-color: var(--gold);' : 'opacity:.6;cursor:not-allowed;'}" ${unlocked ? 'data-call="openProject"' : ''}>
-      <span style="font-size: 14px;">${pIcon}</span> Final Projects
+    html += `<button class="course-btn ${currentView === 'project' ? 'active' : ''}${attn}" style="${unlocked ? 'border-color: var(--gold);' : (p.waived ? '' : 'opacity:.6;cursor:not-allowed;')}" ${unlocked ? 'data-call="openProject"' : ''}>
+      <span style="font-size: 14px;">${pIcon}</span> Final Projects${p.waived ? ' (not required)' : ''}
     </button>`;
   }
 
@@ -1597,19 +1599,20 @@ function renderWelcomeDashboard() {
 
   {
     const p = projectInfo();
-    const allDone = p.total > 0 && p.submitted === p.total;
+    const waived = !!p.waived;
+    const allDone = waived || (p.total > 0 && p.submitted === p.total);
     const pending = projectPending();
-    const cls = !p.finished_module ? 'locked' : (allDone ? 'unlocked completed' : 'unlocked attn');
-    const pIcon = !p.finished_module ? '🔒' : (allDone ? '✅' : '📝');
-    const desc = !p.finished_module
+    const cls = waived ? 'unlocked completed' : !p.finished_module ? 'locked' : (allDone ? 'unlocked completed' : 'unlocked attn');
+    const pIcon = waived ? '✅' : !p.finished_module ? '🔒' : (allDone ? '✅' : '📝');
+    const desc = waived ? 'Not required for your batch — once your modules are done you can go straight to graduation.' : !p.finished_module
       ? 'Unlocks when you complete Module 10 — two essay questions are then picked for you at random.'
       : (allDone ? 'All your projects are submitted. Your leaders will review them before the defence.'
         : (p.total ? 'Module 10 done! Tap here (or the 📝 Project icon) to open and submit your projects.' : 'Your projects are being prepared — check back shortly.'));
-    const left = p.total ? `${p.submitted} / ${p.total} Submitted` : (p.finished_module ? 'Preparing…' : 'Final step');
-    const right = !p.finished_module ? 'Locked' : (allDone ? 'Submitted' : (pending ? 'Start now' : 'Pending'));
-    const pct = p.total ? Math.round((p.submitted / p.total) * 100) : 0;
+    const left = waived ? 'Not required' : p.total ? `${p.submitted} / ${p.total} Submitted` : (p.finished_module ? 'Preparing…' : 'Final step');
+    const right = waived ? 'Waived' : !p.finished_module ? 'Locked' : (allDone ? 'Submitted' : (pending ? 'Start now' : 'Pending'));
+    const pct = waived ? 100 : p.total ? Math.round((p.submitted / p.total) * 100) : 0;
     html += `
-      <div class="roadmap-card ${cls}" ${p.finished_module ? 'data-call="openProject"' : ''} style="${p.finished_module ? 'border-color: var(--gold);' : ''}">
+      <div class="roadmap-card ${cls}" ${(p.finished_module && !waived) ? 'data-call="openProject"' : ''} style="${(p.finished_module && !waived) ? 'border-color: var(--gold);' : ''}">
         <div class="roadmap-icon">${pIcon}</div>
         <div class="roadmap-title">Final Projects</div>
         <div class="roadmap-desc">${desc}</div>
@@ -2623,6 +2626,8 @@ async function loadProjectAdmin() {
 function renderProjectAdmin() {
   if (!currentProjectAdmin) return;
   const d = currentProjectAdmin;
+  renderProjectSubmissionsView();
+  if (subsOpenUserId && document.getElementById("subsMemberModal") && document.getElementById("subsMemberModal").classList.contains("active")) renderSubmissionMember();
 
   // Question bank
   const qWrap = document.getElementById("pqList");
@@ -2879,6 +2884,13 @@ function renderProjectView() {
   if (!list.length) {
     const finished = d.gate && d.gate.finished;
     const mod = escHtml((d.gate && d.gate.course_title) || "Module 10");
+    if (d.gate && d.gate.waived) {
+      tc.innerHTML = `<div style="max-width:640px;text-align:center;padding:2.5rem 1rem;">
+        <div style="font-size:3rem;margin-bottom:1rem;">✅</div>
+        <h2 style="font-family:'DM Serif Display',serif;font-size:1.5rem;color:var(--text-main);margin-bottom:.5rem;">Final projects aren't required for you</h2>
+        <p style="font-size:.9rem;color:var(--text-dim);line-height:1.7;">Once you finish your modules, Graduation opens automatically — there's nothing to submit here.</p></div>`;
+      return;
+    }
     tc.innerHTML = `
       <div style="max-width:640px;">
         ${defenceBanner}
@@ -3168,6 +3180,7 @@ function batchBannerHtml() {
   const b = (typeof userBatch !== "undefined") ? userBatch : null;
   if (!b || !b.start_date || !b.end_date) return "";
   const st = batchStatus(b);
+  if (st.state === "ended" && b.grace_until) { st.label = "Extended access until " + fmtBatchDate(b.grace_until); st.state = "active"; }
   return `
     <div class="batch-banner batch-banner--${st.state}">
       <div class="batch-banner-top">
@@ -3511,4 +3524,116 @@ async function exportCertificate(kind, fullName, issued) {
     if (host) host.remove();
     if (btn) { btn.disabled = false; btn.textContent = label; }
   }
+}
+
+
+// ==========================================
+// ADMIN — PROJECT SUBMISSIONS (one row per member; tap a name for their essays)
+// ==========================================
+let subsOpenUserId = "", subsSearch = "", subsStatusFilter = "";
+
+function groupSubmissionsByMember() {
+  const d = currentProjectAdmin;
+  if (!d) return [];
+  const by = {};
+  (d.assignments || []).forEach(a => { (by[a.user_id] = by[a.user_id] || []).push(a); });
+  return Object.keys(by).map(uid => {
+    const all = by[uid];
+    const subs = all.filter(a => a.status !== "ASSIGNED");
+    const prof = (d.profiles || {})[uid] || {};
+    const times = subs.map(a => a.submitted_at).filter(Boolean).sort();
+    return {
+      user_id: uid, all, subs,
+      name: prof.full_name || (all[0] && all[0].full_name) || uid,
+      username: prof.username || (all[0] && all[0].username) || "",
+      awaiting: subs.filter(a => a.status === "SUBMITTED").length,
+      graded: subs.filter(a => a.status === "GRADED").length,
+      last: times.length ? times[times.length - 1] : ""
+    };
+  }).filter(m => m.subs.length);          // only members who have actually submitted something
+}
+
+function renderProjectSubmissionsView() {
+  const tbody = document.getElementById("subsBody");
+  if (!tbody) return;
+  if (!currentProjectAdmin) { tbody.innerHTML = `<tr><td colspan="5" style="padding:2rem;text-align:center;color:var(--text-dim)">Loading…</td></tr>`; return; }
+  const all = groupSubmissionsByMember();
+  const q = subsSearch.trim().toLowerCase();
+  const rows = all
+    .filter(m => !q || m.name.toLowerCase().includes(q) || m.username.toLowerCase().includes(q))
+    .filter(m => subsStatusFilter === "awaiting" ? m.awaiting > 0 : subsStatusFilter === "graded" ? m.awaiting === 0 : true)
+    .sort((x, y) => (y.awaiting > 0) - (x.awaiting > 0) || String(y.last).localeCompare(String(x.last)));
+
+  const awaitingMembers = all.filter(m => m.awaiting > 0).length;
+  const countEl = document.getElementById("subsCount");
+  if (countEl) countEl.textContent = `${all.length} member${all.length === 1 ? "" : "s"} have submitted · ${awaitingMembers} with essays awaiting grade`;
+
+  tbody.innerHTML = rows.length ? rows.map(m => `
+    <tr>
+      <td data-label="Member"><button class="member-cell" data-call="openSubmissionMember" data-user_id="${escHtml(m.user_id)}"><span>${escHtml(m.name)}</span></button></td>
+      <td data-label="Username" style="font-family:'JetBrains Mono',monospace;font-size:.82rem;color:var(--text-muted)">${escHtml(m.username) || "—"}</td>
+      <td data-label="Projects" style="font-size:.85rem;color:var(--text-muted)">${m.subs.length} of ${m.all.length} submitted</td>
+      <td data-label="Status">${m.awaiting > 0
+        ? `<span class="badge badge--submitted">${m.awaiting} awaiting grade</span>`
+        : `<span class="badge badge--passed">All graded</span>`}</td>
+      <td data-label="Last submitted" style="color:var(--text-dim);font-size:.8rem">${m.last ? fmtDateTime(m.last) : "—"}</td>
+    </tr>`).join("")
+    : `<tr><td colspan="5" style="padding:2rem;text-align:center;color:var(--text-dim)">${all.length ? "No members match." : "No essays submitted yet."}</td></tr>`;
+}
+
+function filterSubmissions(v) { subsSearch = v || ""; renderProjectSubmissionsView(); }
+function filterSubmissionStatus(v) { subsStatusFilter = v || ""; renderProjectSubmissionsView(); }
+async function refreshSubmissions() { await loadProjectAdmin(); showToast("Submissions refreshed.", "success"); }
+
+function openSubmissionMember(args) {
+  subsOpenUserId = args.user_id;
+  renderSubmissionMember();
+  document.getElementById("subsMemberModal").classList.add("active");
+}
+function closeSubmissionMember() {
+  document.getElementById("subsMemberModal").classList.remove("active");
+  subsOpenUserId = "";
+}
+
+function renderSubmissionMember() {
+  const d = currentProjectAdmin;
+  if (!d || !subsOpenUserId) return;
+  const m = groupSubmissionsByMember().find(x => x.user_id === subsOpenUserId);
+  if (!m) { closeSubmissionMember(); return; }
+  const p = (d.profiles || {})[m.user_id] || {};
+  document.getElementById("sm-name").textContent = m.name;
+  document.getElementById("sm-sub").textContent = `${m.subs.length} of ${m.all.length} project${m.all.length === 1 ? "" : "s"} submitted`;
+
+  const bio = [
+    ["Username", p.username || m.username], ["Email", p.email], ["Phone", p.phone],
+    ["Batch", batchNameOf(p.batch_id)], ["Tribe ID", p.tribe_id], ["Hub ID", p.hub_id],
+    ["Colony", p.colony], ["Course start", p.start_date ? fmtBatchDate(p.start_date) : ""]
+  ];
+  document.getElementById("sm-bio").innerHTML = `
+    <div class="sub-bio">${bio.map(([k, v]) => `<div><span>${escHtml(k)}</span><b>${escHtml(v) || "—"}</b></div>`).join("")}</div>`;
+
+  const safeLink = l => /^https?:\/\//i.test(l || "");
+  document.getElementById("sm-projects").innerHTML = m.all.map((a, i) => {
+    const submitted = a.status !== "ASSIGNED";
+    const words = submitted ? String(a.submission_text || "").trim().split(/\s+/).filter(Boolean).length : 0;
+    const scoreBlock = a.status === "GRADED"
+      ? `<div class="sub-score"><b>${escHtml(a.score)}%</b><span>${a.feedback ? escHtml(a.feedback) : "No written feedback."}</span></div>` : "";
+    const action = a.status === "SUBMITTED"
+      ? `<button class="chip-btn chip-btn--gold" data-call="openProjectReview" data-assign_id="${escHtml(a.assign_id)}">📝 Grade</button>`
+      : a.status === "GRADED"
+        ? `<button class="chip-btn chip-btn--steel" data-call="openProjectReview" data-assign_id="${escHtml(a.assign_id)}">✏️ Re-grade</button>` : "";
+    return `
+      <div class="sub-card">
+        <div class="sub-card-head">
+          <strong>Project ${i + 1}</strong>
+          ${projectStatusBadge(a.status)}
+          <span class="sub-card-meta">${submitted ? (a.submitted_at ? "Submitted " + escHtml(fmtDateTime(a.submitted_at)) + " · " : "") + words + " words" : "Not submitted yet"}</span>
+          <span style="margin-left:auto">${action}</span>
+        </div>
+        <div class="sub-q"><span>Question</span>${escHtml(a.question_text)}</div>
+        ${submitted ? `<div class="sub-essay"><span>Essay</span><p>${escHtml(a.submission_text || "")}</p></div>` : ""}
+        ${submitted && safeLink(a.doc_link) ? `<p style="margin:.5rem 0 0"><a href="${escHtml(a.doc_link)}" target="_blank" rel="noopener" style="color:var(--gold-lt);font-size:.82rem;word-break:break-all;">Attached document ↗</a></p>` : ""}
+        ${scoreBlock}
+      </div>`;
+  }).join("");
 }
