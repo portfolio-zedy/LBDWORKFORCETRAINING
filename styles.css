@@ -1154,3 +1154,21 @@ input, select, textarea { font-size: 16px; }
 .lock-grad-text  { font-size: .82rem; color: var(--text-muted); line-height: 1.6; margin-bottom: .7rem; }
 .lock-grad-text:last-child { margin-bottom: 0; }
 .lock-grad-select { width: 100%; padding: .7rem .8rem; margin-bottom: .7rem; background: var(--bg-main); border: 1.5px solid var(--border-strong); border-radius: 8px; color: var(--text-main); font-size: 16px; }
+
+
+/* ── Project Submissions: member modal ── */
+.sub-bio { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: .6rem; background: var(--bg-surface); border-radius: 12px; padding: .9rem 1rem; margin-bottom: 1.1rem; }
+.sub-bio > div { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.sub-bio span { font-size: .66rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: .07em; }
+.sub-bio b { font-size: .85rem; color: var(--text-main); font-weight: 500; word-break: break-word; }
+.sub-card { border: 1px solid var(--border-subtle); border-radius: 12px; padding: 1rem 1.1rem; margin-bottom: 1rem; background: var(--bg-panel); }
+.sub-card-head { display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; margin-bottom: .8rem; }
+.sub-card-head strong { color: var(--text-main); }
+.sub-card-meta { font-size: .76rem; color: var(--text-dim); }
+.sub-q { background: var(--bg-surface); border-left: 3px solid var(--gold); border-radius: 8px; padding: .8rem 1rem; font-size: .88rem; color: var(--text-main); line-height: 1.6; margin-bottom: .75rem; }
+.sub-q span, .sub-essay span { display: block; font-size: .66rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: .07em; margin-bottom: .3rem; }
+.sub-essay { background: var(--bg-main); border: 1px solid var(--border-subtle); border-radius: 8px; padding: .8rem 1rem; max-height: 300px; overflow-y: auto; }
+.sub-essay p { margin: 0; font-size: .85rem; color: var(--text-muted); line-height: 1.7; white-space: pre-wrap; }
+.sub-score { display: flex; gap: .9rem; align-items: center; margin-top: .75rem; background: var(--success-bg); border-radius: 8px; padding: .7rem 1rem; }
+.sub-score b { font-family: 'DM Serif Display', serif; font-size: 1.5rem; color: var(--success); }
+.sub-score span { font-size: .82rem; color: var(--text-muted); line-height: 1.5; }
