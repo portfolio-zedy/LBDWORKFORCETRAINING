@@ -51,6 +51,9 @@
       <button class="nav-item" data-call="switchView" data-view="projects" id="nav-projects">
         📝 <span>Projects &amp; Broadcasts</span>
       </button>
+      <button class="nav-item" data-call="switchView" data-view="submissions" id="nav-submissions">
+        📚 <span>Project Submissions</span>
+      </button>
 
       <div class="nav-section-label">People</div>
       <button class="nav-item" data-call="switchView" data-view="learners">👥 <span>Member Progress</span></button>
@@ -183,6 +186,31 @@
       </div>
 
       <!-- VIEW: PROJECTS & BROADCASTS -->
+      <div class="view" id="view-submissions">
+        <div class="table-wrap">
+          <div class="table-header">
+            <div><h3>Project Submissions</h3><p id="subsCount">Loading…</p></div>
+            <div style="display:flex;gap:.6rem;flex-wrap:wrap;align-items:center">
+              <input type="text" class="filter-input" style="max-width:260px" placeholder="Search member…" oninput="filterSubmissions(this.value)">
+              <select class="filter-input" style="max-width:190px" onchange="filterSubmissionStatus(this.value)">
+                <option value="">All members</option>
+                <option value="awaiting">Awaiting grade</option>
+                <option value="graded">Fully graded</option>
+              </select>
+              <button class="chip-btn chip-btn--steel" data-call="refreshSubmissions">↻ Refresh</button>
+            </div>
+          </div>
+          <div style="overflow-x:auto">
+            <table>
+              <thead><tr><th>Member</th><th>Username</th><th>Projects</th><th>Status</th><th>Last submitted</th></tr></thead>
+              <tbody id="subsBody">
+                <tr><td colspan="5" style="padding:2rem;text-align:center;color:var(--text-dim)">Loading…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
       <div class="view" id="view-projects">
         <div class="stat-grid" id="projStatsRow" style="grid-template-columns:repeat(3,1fr)">
           <div class="kpi-card"><div class="kpi-icon kpi-icon--gold">📝</div><div class="kpi-body"><div class="kpi-num">—</div><div class="kpi-label">Assigned</div></div></div>
@@ -192,8 +220,8 @@
 
         <div class="table-wrap" style="margin-bottom:1.5rem">
           <div class="table-header">
-            <div><h3>Question Bank</h3><p>Each learner is dealt ONE question at random when you press Assign</p></div>
-            <button class="btn-action btn-primary" id="btn-assign-projects" style="padding: 0.55rem 1.1rem; font-size: 0.82rem;" data-call="assignProjects">🎯 Assign Projects</button>
+            <div><h3>Question Bank</h3><p>When a learner finishes Module 10, two questions are picked at random for them automatically</p></div>
+            <button class="btn-action btn-primary" id="btn-assign-projects" style="padding: 0.55rem 1.1rem; font-size: 0.82rem;" data-call="assignProjects">🎯 Assign to Module 10 finishers</button>
           </div>
           <div style="padding:1.25rem 1.5rem">
             <div id="pqList" style="margin-bottom:1rem"><p style="color:var(--text-dim);font-size:.85rem">Loading…</p></div>
@@ -498,6 +526,24 @@
     <div class="modal-actions">
       <button class="btn-action btn-secondary" style="flex: 1; padding: 0.75rem; justify-content: center;" onclick="closeMilestoneListModal()">Close</button>
       <button class="btn-action btn-primary" style="flex: 1; padding: 0.75rem; justify-content: center;" data-call="openMilestoneCreate">➕ Add Milestone</button>
+    </div>
+  </div>
+</div>
+
+<!-- MEMBER PROJECTS MODAL (opens when a name is tapped in Project Submissions) -->
+<div class="modal-overlay" id="subsMemberModal">
+  <div class="modal" style="max-width: 760px; max-height: 92vh; overflow-y: auto;">
+    <div class="modal-head" style="margin-bottom:0.75rem;">
+      <div>
+        <h3 id="sm-name" style="font-family: 'DM Serif Display', serif; font-size: 1.5rem;">—</h3>
+        <p id="sm-sub" style="color:var(--text-dim);font-size:0.85rem;"></p>
+      </div>
+      <button class="modal-close" onclick="closeSubmissionMember()" aria-label="Close">✕</button>
+    </div>
+    <div id="sm-bio"></div>
+    <div id="sm-projects"></div>
+    <div class="modal-actions" style="margin-top:1rem;">
+      <button class="btn-action btn-secondary" style="width:100%;padding:.75rem;justify-content:center;" onclick="closeSubmissionMember()">Close</button>
     </div>
   </div>
 </div>
